@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Antigravity Startup Dashboard",
+      "type": "shell",
+      "command": "Write-Host '=== ANTIGRAVITY IDE STATUS ===' -ForegroundColor Cyan; agy --version; Write-Host 'Workspace:' (Get-Location); Write-Host 'Git Branch:' (git branch --show-current 2>$null); Write-Host ''; antigravity-usage",
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false,
+        "clear": true
+      }
+    }
+  ]
+}
