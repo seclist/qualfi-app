@@ -183,6 +183,7 @@ function Slider({
 
 export function MacroDemo() {
   const sectionRef = useRef<HTMLElement>(null);
+  const cockpitRef = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(0);
   const [goal, setGoal] = useState<Goal | null>("lose");
   const [sex, setSex] = useState<Sex>("female");
@@ -241,6 +242,11 @@ export function MacroDemo() {
   const triggerUnlock = () => {
     if (!name.trim() || !contact.trim() || phase !== "idle") return;
     setPhase("sending");
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      window.setTimeout(() => {
+        cockpitRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 150);
+    }
     const start = performance.now();
     const delay = 750 + Math.random() * 450;
     window.setTimeout(() => {
@@ -272,46 +278,46 @@ export function MacroDemo() {
         : "bg-surface-2 text-muted border-line";
 
   return (
-    <section ref={sectionRef} id="demo" className="relative py-24 md:py-32">
+    <section ref={sectionRef} id="demo" className="relative py-16 sm:py-24 md:py-32">
       <div className="pointer-events-none absolute inset-x-0 -top-36 h-[640px] bg-[radial-gradient(ellipse_55%_50%_at_50%_50%,rgba(0,210,220,0.14),transparent_70%)]" />
 
-      <div className="relative mx-auto max-w-6xl px-6">
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
         {/* ───────────── Architectural Section Header ───────────── */}
-        <div className="gsap-demo-reveal flex flex-col justify-between gap-6 border-b border-line pb-8 lg:flex-row lg:items-end">
+        <div className="gsap-demo-reveal flex flex-col justify-between gap-4 sm:gap-6 border-b border-line pb-6 sm:pb-8 lg:flex-row lg:items-end">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2.5">
-              <span className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-brand-cyan">
+            <div className="inline-flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <span className="font-mono text-[10.5px] sm:text-[11px] font-bold uppercase tracking-[0.18em] sm:tracking-[0.2em] text-brand-cyan">
                 02 / INTERACTIVE SANDBOX
               </span>
               <span className="h-3.5 w-px bg-line-strong" />
-              <span className="font-mono text-xs text-muted">CLIENT VIEW + COACH VIEW</span>
+              <span className="font-mono text-[11px] sm:text-xs text-muted">CLIENT VIEW + COACH VIEW</span>
             </div>
-            <h2 className="mt-3 text-[34px] font-semibold leading-[1.04] tracking-[-0.035em] text-fg sm:text-5xl">
+            <h2 className="mt-2.5 sm:mt-3 text-[30px] font-semibold leading-[1.06] sm:leading-[1.04] tracking-[-0.035em] text-fg sm:text-5xl">
               Experience both sides{" "}
               <span className="serif text-shimmer font-normal italic">in real time.</span>
             </h2>
           </div>
 
-          <p className="max-w-md text-sm leading-relaxed text-muted">
-            Click through the 60-second diagnostic on the left as a follower, and watch the live
-            algorithmic lead radar and WhatsApp alert fire on the coach&apos;s phone on the right.
+          <p className="max-w-md text-[13.5px] sm:text-sm leading-relaxed text-muted">
+            Tap through the 60-second diagnostic as a follower, and watch the live algorithmic lead
+            radar and WhatsApp alert fire on the coach&apos;s phone.
           </p>
         </div>
 
         {/* ───────────── Asymmetric Dual-Cockpit Grid ───────────── */}
-        <div className="gsap-demo-reveal relative mt-12 grid gap-6 lg:grid-cols-12 lg:items-stretch">
+        <div className="gsap-demo-reveal relative mt-8 sm:mt-12 grid gap-5 sm:gap-6 lg:grid-cols-12 lg:items-stretch">
           {/* ───────────── Left 7 Cols: Client's Micro Tool ───────────── */}
           <div className="card flex flex-col justify-between overflow-hidden p-0 lg:col-span-7">
             {/* Tool Top Telemetry Bar */}
             <div>
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-2/40 px-6 py-4 md:px-8">
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-full bg-linear-to-br from-brand-cyan to-brand-deep text-sm font-bold text-[#02131a] shadow-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 border-b border-line bg-surface-2/40 px-4 py-3.5 sm:px-6 sm:py-4 md:px-8">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <span className="grid h-9 w-9 sm:h-10 sm:w-10 place-items-center rounded-full bg-linear-to-br from-brand-cyan to-brand-deep text-xs sm:text-sm font-bold text-[#02131a] shadow-xs">
                     A
                   </span>
                   <div className="leading-tight">
-                    <p className="text-[14px] font-semibold text-fg">Coach Alex</p>
-                    <p className="text-[11.5px] text-muted">60-second macro &amp; split diagnostic</p>
+                    <p className="text-[13.5px] sm:text-[14px] font-semibold text-fg">Coach Alex</p>
+                    <p className="text-[11px] sm:text-[11.5px] text-muted">60-second macro &amp; split diagnostic</p>
                   </div>
                 </div>
 
@@ -321,7 +327,7 @@ export function MacroDemo() {
                     <span className="h-1.5 w-1.5 rounded-full bg-brand-cyan animate-pulse" />
                     {plan.calories.toLocaleString("en-GB")} kcal
                   </span>
-                  <span className="rounded-full border border-brand-cyan/30 bg-brand-cyan/10 px-3 py-1 font-mono text-[11px] font-bold text-brand-cyan tabular-nums">
+                  <span className="rounded-full border border-brand-cyan/30 bg-brand-cyan/10 px-2.5 sm:px-3 py-1 font-mono text-[10.5px] sm:text-[11px] font-bold text-brand-cyan tabular-nums">
                     {isResults ? "UNLOCKED" : `0${step + 1} / 0${TOTAL_STEPS}`}
                   </span>
                 </div>
@@ -336,20 +342,20 @@ export function MacroDemo() {
               </div>
 
               {/* Interactive Step Body */}
-              <div className="relative z-10 min-h-[430px] p-6 md:p-8">
+              <div className="relative z-10 min-h-[360px] sm:min-h-[430px] p-4 sm:p-6 md:p-8">
                 {/* Step 0 — Goal */}
                 {step === 0 ? (
                   <div key="s0" className="animate-step-enter">
-                    <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
+                    <p className="font-mono text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
                       STEP 01 · PRIMARY OBJECTIVE
                     </p>
-                    <h3 className="mt-1 text-2xl font-semibold tracking-tight text-fg">
+                    <h3 className="mt-1 text-xl sm:text-2xl font-semibold tracking-tight text-fg">
                       What’s your main physique goal?
                     </h3>
-                    <p className="mt-1 text-[13.5px] text-muted">
+                    <p className="mt-1 text-xs sm:text-[13.5px] text-muted">
                       Select one — your daily calorie &amp; protein targets calibrate immediately.
                     </p>
-                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                    <div className="mt-4 sm:mt-6 grid gap-2.5 sm:gap-3 sm:grid-cols-2">
                       {GOALS.map((g) => {
                         const active = goal === g.id;
                         return (
@@ -361,10 +367,10 @@ export function MacroDemo() {
                               setGoal(g.id);
                               setTimeout(() => setStep(1), 180);
                             }}
-                            className={`group rounded-2xl border p-4.5 text-left transition-all duration-200 cursor-pointer ${
+                            className={`group rounded-2xl border p-3.5 sm:p-4.5 text-left transition-all duration-200 cursor-pointer ${
                               active
                                 ? "border-brand-cyan bg-brand-cyan/12 shadow-[0_0_0_3px_var(--brand-cyan-glow)]"
-                                : "border-line bg-surface-2/40 hover:-translate-y-0.5 hover:border-brand-cyan/45 hover:bg-surface-2"
+                                : "border-line bg-surface-2/40 hover:-translate-y-0.5 hover:border-brand-cyan/45 hover:bg-surface-2 active:scale-[0.99]"
                             }`}
                           >
                             <div className="flex items-center justify-between">
@@ -381,8 +387,8 @@ export function MacroDemo() {
                                 {active ? <IconCheck className="h-3 w-3" /> : null}
                               </span>
                             </div>
-                            <p className="mt-3 text-[15.5px] font-semibold text-fg">{g.label}</p>
-                            <p className="mt-0.5 text-[12.5px] text-muted">{g.desc}</p>
+                            <p className="mt-2 sm:mt-3 text-[15px] sm:text-[15.5px] font-semibold text-fg">{g.label}</p>
+                            <p className="mt-0.5 text-xs sm:text-[12.5px] text-muted">{g.desc}</p>
                           </button>
                         );
                       })}
@@ -395,10 +401,10 @@ export function MacroDemo() {
                   <div key="s1" className="animate-step-enter">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
-                        <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
+                        <p className="font-mono text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
                           STEP 02 · BIOMETRIC INPUTS
                         </p>
-                        <h3 className="mt-1 text-2xl font-semibold tracking-tight text-fg">
+                        <h3 className="mt-1 text-xl sm:text-2xl font-semibold tracking-tight text-fg">
                           Dial in your current stats
                         </h3>
                       </div>
@@ -422,7 +428,7 @@ export function MacroDemo() {
                       </div>
                     </div>
 
-                    <div className="mt-6 space-y-3.5">
+                    <div className="mt-4 sm:mt-6 space-y-3 sm:space-y-3.5">
                       <Slider id="demo-age" label="Age" unit="yrs" min={16} max={70} value={age} onChange={setAge} />
                       <Slider id="demo-weight" label="Weight" unit="kg" min={40} max={160} value={weight} onChange={setWeight} />
                       <Slider id="demo-height" label="Height" unit="cm" min={140} max={210} value={height} onChange={setHeight} />
@@ -433,46 +439,46 @@ export function MacroDemo() {
                 {/* Step 2 — Weekly Split */}
                 {step === 2 ? (
                   <div key="s2" className="animate-step-enter">
-                    <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
+                    <p className="font-mono text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
                       STEP 03 · TRAINING FREQUENCY
                     </p>
-                    <h3 className="mt-1 text-2xl font-semibold tracking-tight text-fg">
+                    <h3 className="mt-1 text-xl sm:text-2xl font-semibold tracking-tight text-fg">
                       How many days a week can you train?
                     </h3>
-                    <p className="mt-1 text-[13.5px] text-muted">
+                    <p className="mt-1 text-xs sm:text-[13.5px] text-muted">
                       Your split architecture and activity multiplier adjust automatically.
                     </p>
 
-                    <div className="mt-6 grid grid-cols-5 gap-2.5">
+                    <div className="mt-5 sm:mt-6 grid grid-cols-5 gap-2 sm:gap-2.5">
                       {([2, 3, 4, 5, 6] as Days[]).map((d) => (
                         <button
                           key={d}
                           id={`demo-days-${d}`}
                           type="button"
                           onClick={() => setDays(d)}
-                          className={`rounded-2xl border py-4 text-center transition-all cursor-pointer ${
+                          className={`rounded-2xl border py-3.5 sm:py-4 text-center transition-all cursor-pointer active:scale-[0.98] ${
                             days === d
                               ? "border-brand-cyan bg-brand-cyan/12 shadow-[0_0_0_3px_var(--brand-cyan-glow)]"
                               : "border-line bg-surface-2/40 hover:border-line-strong hover:bg-surface-2"
                           }`}
                         >
-                          <p className="font-mono text-2xl font-bold tabular-nums text-fg">{d}</p>
-                          <p className="text-[11px] font-medium text-muted">days</p>
+                          <p className="font-mono text-xl sm:text-2xl font-bold tabular-nums text-fg">{d}</p>
+                          <p className="text-[10.5px] sm:text-[11px] font-medium text-muted">days</p>
                         </button>
                       ))}
                     </div>
 
-                    <div className="mt-5 rounded-2xl border border-line bg-surface-2/50 p-4">
+                    <div className="mt-4 sm:mt-5 rounded-2xl border border-line bg-surface-2/50 p-3.5 sm:p-4">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs font-medium text-muted">Recommended Split Architecture</p>
+                        <p className="text-xs font-medium text-muted">Recommended Split</p>
                         <p className="font-mono text-xs font-bold text-brand-cyan">{plan.split.name}</p>
                       </div>
-                      <div className="mt-3 grid grid-cols-7 gap-1.5">
+                      <div className="mt-3 grid grid-cols-7 gap-1 sm:gap-1.5">
                         {plan.split.days.map((d, i) => (
-                          <div key={i} className="text-center">
+                          <div key={i} className="min-w-0 text-center">
                             <p className="text-[10px] font-medium text-muted">{WEEK[i]}</p>
                             <div
-                              className={`mt-1 grid h-8 place-items-center rounded-lg font-mono text-[9.5px] font-bold transition ${
+                              className={`mt-1 grid h-8 place-items-center rounded-lg px-0.5 font-mono text-[8.5px] sm:text-[9.5px] font-bold truncate transition ${
                                 d
                                   ? "bg-brand-cyan/20 text-brand-cyan ring-1 ring-brand-cyan/40"
                                   : "bg-line/40 text-muted-soft"
@@ -490,17 +496,17 @@ export function MacroDemo() {
                 {/* Step 3 — Struggles */}
                 {step === 3 ? (
                   <div key="s3" className="animate-step-enter">
-                    <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
+                    <p className="font-mono text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
                       STEP 04 · BOTTLENECK DIAGNOSTIC
                     </p>
-                    <h3 className="mt-1 text-2xl font-semibold tracking-tight text-fg">
+                    <h3 className="mt-1 text-xl sm:text-2xl font-semibold tracking-tight text-fg">
                       What’s held you back most?
                     </h3>
-                    <p className="mt-1 text-[13.5px] text-muted">
-                      Watch the coach’s live Intent Score on the right jump as you select pain points:
+                    <p className="mt-1 text-xs sm:text-[13.5px] text-muted">
+                      Watch the coach’s live Intent Score jump as you select pain points:
                     </p>
 
-                    <div className="mt-6 flex flex-wrap gap-2.5">
+                    <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-2.5">
                       {STRUGGLES.map((s) => {
                         const active = struggles.includes(s.id);
                         return (
@@ -509,15 +515,17 @@ export function MacroDemo() {
                             id={`demo-struggle-${s.id}`}
                             type="button"
                             onClick={() => toggleStruggle(s.id)}
-                            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[13.5px] font-medium transition-all cursor-pointer ${
+                            className={`inline-flex w-full sm:w-auto items-center justify-between sm:justify-start gap-2 rounded-2xl sm:rounded-full border px-4 py-3 sm:py-2.5 text-[13px] sm:text-[13.5px] font-medium transition-all cursor-pointer active:scale-[0.99] ${
                               active
                                 ? "border-brand-cyan bg-brand-cyan/15 text-fg shadow-xs ring-1 ring-brand-cyan/30"
                                 : "border-line bg-surface-2/50 text-muted hover:border-line-strong hover:text-fg"
                             }`}
                           >
-                            {active ? <IconCheck className="h-3.5 w-3.5 text-brand-cyan" /> : null}
-                            <span>{s.label}</span>
-                            <span className="font-mono text-[10px] text-brand-cyan">+{s.weight}</span>
+                            <span className="flex items-center gap-2">
+                              {active ? <IconCheck className="h-3.5 w-3.5 shrink-0 text-brand-cyan" /> : null}
+                              <span>{s.label}</span>
+                            </span>
+                            <span className="font-mono text-[10px] font-bold text-brand-cyan">+{s.weight}</span>
                           </button>
                         );
                       })}
@@ -528,21 +536,21 @@ export function MacroDemo() {
                 {/* Step 4 — Results & Instant Lead Dispatch */}
                 {isResults ? (
                   <div key="results" className="animate-step-enter">
-                    <div className="grid gap-3.5 sm:grid-cols-[1fr_1.2fr]">
-                      <div className="rounded-2xl border border-brand-cyan/30 bg-brand-cyan/[0.08] p-4.5 shadow-xs">
+                    <div className="grid gap-3 sm:gap-3.5 sm:grid-cols-[1fr_1.2fr]">
+                      <div className="rounded-2xl border border-brand-cyan/30 bg-brand-cyan/[0.08] p-4 sm:p-4.5 shadow-xs">
                         <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.14em] text-brand-cyan">
                           Daily Target
                         </p>
-                        <p className="mt-1 text-[40px] font-bold leading-none tracking-[-0.04em] tabular-nums text-fg">
+                        <p className="mt-1 text-[34px] sm:text-[40px] font-bold leading-none tracking-[-0.04em] tabular-nums text-fg">
                           {plan.calories.toLocaleString("en-GB")}
                           <span className="ml-1 text-sm font-medium text-muted">kcal</span>
                         </p>
-                        <p className="mt-2 text-xs text-muted font-medium">
+                        <p className="mt-1.5 sm:mt-2 text-xs text-muted font-medium">
                           {goalLabel} · {days}d/wk · {plan.split.name}
                         </p>
                       </div>
 
-                      <div className="space-y-2.5 rounded-2xl border border-line bg-surface-2/50 p-4.5">
+                      <div className="space-y-2.5 rounded-2xl border border-line bg-surface-2/50 p-4 sm:p-4.5">
                         {macros.map((m) => (
                           <div key={m.label}>
                             <div className="flex justify-between text-xs">
@@ -642,13 +650,13 @@ export function MacroDemo() {
             </div>
 
             {/* Tool Footer Controls */}
-            <div className="relative z-10 flex items-center justify-between border-t border-line bg-surface-2/40 px-6 py-4 md:px-8">
+            <div className="relative z-10 flex items-center justify-between border-t border-line bg-surface-2/40 px-4 py-3.5 sm:px-6 sm:py-4 md:px-8">
               {isResults ? (
                 <button
                   id="demo-restart"
                   type="button"
                   onClick={reset}
-                  className="text-xs font-semibold text-muted transition hover:text-fg cursor-pointer"
+                  className="py-1.5 text-xs font-semibold text-muted transition hover:text-fg cursor-pointer"
                 >
                   ↺ Replay diagnostic
                 </button>
@@ -657,7 +665,7 @@ export function MacroDemo() {
                   id="demo-back"
                   type="button"
                   onClick={() => setStep((s) => Math.max(0, s - 1))}
-                  className={`text-xs font-semibold text-muted transition hover:text-fg cursor-pointer ${
+                  className={`py-1.5 text-xs font-semibold text-muted transition hover:text-fg cursor-pointer ${
                     step === 0 ? "invisible" : ""
                   }`}
                 >
@@ -666,14 +674,14 @@ export function MacroDemo() {
               )}
 
               {isResults ? (
-                <span className="font-mono text-[11px] text-muted-soft">POWERED BY QUALFI ENGINE</span>
+                <span className="font-mono text-[10px] sm:text-[11px] text-muted-soft">POWERED BY QUALFI ENGINE</span>
               ) : (
                 <button
                   id="demo-next"
                   type="button"
                   disabled={!canContinue}
                   onClick={() => setStep((s) => s + 1)}
-                  className="btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold cursor-pointer"
+                  className="btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold cursor-pointer active:scale-[0.98]"
                 >
                   <span>{step === TOTAL_STEPS - 1 ? "Calculate My Plan" : "Next Step"}</span>
                   <IconArrowRight className="h-3.5 w-3.5" />
@@ -683,9 +691,12 @@ export function MacroDemo() {
           </div>
 
           {/* ───────────── Right 5 Cols: Coach's Live WhatsApp & Scoring Cockpit ───────────── */}
-          <div className="card flex flex-col justify-between overflow-hidden border-slate-300/60 bg-[#060b11] p-0 text-white shadow-2xl lg:col-span-5 dark:border-white/10">
+          <div
+            ref={cockpitRef}
+            className="card flex flex-col justify-between overflow-hidden border-slate-300/60 bg-[#060b11] p-0 text-white shadow-2xl lg:col-span-5 dark:border-white/10"
+          >
             {/* Top Cockpit Header */}
-            <div className="flex items-center justify-between border-b border-white/8 bg-[#0b131c] px-5 py-4">
+            <div className="flex items-center justify-between border-b border-white/8 bg-[#0b131c] px-4 py-3.5 sm:px-5 sm:py-4">
               <div className="flex items-center gap-3">
                 <span className="grid h-9 w-9 place-items-center rounded-full bg-whatsapp text-white shadow-xs">
                   <IconWhatsApp className="h-5 w-5" />
@@ -725,9 +736,9 @@ export function MacroDemo() {
             </div>
 
             {/* Cockpit Body */}
-            <div className="flex flex-1 flex-col justify-between gap-4 p-5 [background-image:radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:16px_16px]">
+            <div className="flex flex-1 flex-col justify-between gap-3.5 sm:gap-4 p-4 sm:p-5 [background-image:radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:16px_16px]">
               {/* Real-Time Algorithmic Intent Radar (Always Live!) */}
-              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-md">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 sm:p-4 backdrop-blur-md">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <IconSparkle className="h-3.5 w-3.5 text-brand-cyan" />

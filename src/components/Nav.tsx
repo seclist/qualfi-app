@@ -41,12 +41,12 @@ export function Nav() {
   }, []);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
+    <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-4 sm:pt-4">
       <div
-        className={`mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full border px-3 pl-5 transition-all duration-500 ${
+        className={`mx-auto flex h-13 sm:h-14 max-w-6xl items-center justify-between rounded-full border px-2.5 pl-4 sm:px-3 sm:pl-5 transition-all duration-500 ${
           scrolled || open
             ? "glass shadow-[0_14px_44px_-12px_rgba(0,0,0,0.16)] dark:shadow-[0_18px_50px_-12px_rgba(0,0,0,0.75)]"
-            : "border-transparent bg-transparent"
+            : "glass md:border-transparent md:bg-transparent md:backdrop-blur-none"
         }`}
       >
         <Link href="/#top" aria-label="Qualfi home" id="nav-logo" className="group flex items-center gap-3">
@@ -91,8 +91,17 @@ export function Nav() {
           })}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <ThemeToggle />
+
+          {/* Mobile Quick CTA Pill */}
+          <Link
+            href="/#claim"
+            className="btn-primary inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold active:scale-[0.98] md:hidden"
+          >
+            <span>Enquire</span>
+            <IconArrowRight className="h-3 w-3" />
+          </Link>
 
           <Link
             id="nav-cta"

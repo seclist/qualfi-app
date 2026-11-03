@@ -22,11 +22,11 @@ export function Footer() {
       {/* Subtle ambient under-glow */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-[radial-gradient(ellipse_50%_80%_at_50%_100%,rgba(0,210,220,0.09),transparent_70%)]" />
 
-      <div className="relative mx-auto max-w-6xl px-6 py-10">
+      <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
         {/* Top Row: Brand + Capsule Links + Instagram Pill */}
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
-            <Link href="/#top" aria-label="Qualfi home" className="transition-opacity hover:opacity-85">
+        <div className="flex flex-col justify-between gap-5 sm:gap-6 md:flex-row md:items-center">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-5">
+            <Link href="/#top" aria-label="Qualfi home" className="w-fit transition-opacity hover:opacity-85">
               <Logo />
             </Link>
             <span className="hidden h-4 w-px bg-line-strong sm:block" />
@@ -38,17 +38,17 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 sm:justify-start sm:gap-3">
             {/* Sleek Glass Capsule for Section Links */}
             <nav
               aria-label="Footer navigation"
-              className="inline-flex items-center gap-1 rounded-full border border-line bg-surface-2/60 p-1"
+              className="flex w-full items-center justify-between gap-1 rounded-full border border-line bg-surface-2/60 p-1 sm:w-auto sm:inline-flex"
             >
               {sectionLinks.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="group inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-muted transition-all duration-200 hover:bg-surface hover:text-fg"
+                  className="group inline-flex flex-1 sm:flex-initial items-center justify-center gap-1.5 rounded-full px-2.5 sm:px-3 py-1.5 sm:py-1 text-xs font-medium text-muted transition-all duration-200 hover:bg-surface hover:text-fg"
                 >
                   <span className="font-mono text-[10px] font-bold text-brand-cyan/75 transition-colors group-hover:text-brand-cyan">
                     {l.code}

@@ -246,38 +246,38 @@ export function ClaimSpot() {
     step === 0 ? 33 : step === 1 ? 66 : step === 2 ? 90 : 100;
 
   return (
-    <section ref={sectionRef} id="claim" className="relative py-24 md:py-32">
+    <section ref={sectionRef} id="claim" className="relative py-16 sm:py-24 md:py-32">
       <div className="pointer-events-none absolute inset-x-0 -top-36 h-[640px] bg-[radial-gradient(ellipse_55%_50%_at_50%_50%,rgba(0,210,220,0.16),transparent_70%)]" />
 
-      <div className="relative mx-auto max-w-6xl px-6">
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
         {/* ───────────── Architectural Section Header ───────────── */}
-        <div className="gsap-enquire-reveal flex flex-col justify-between gap-6 border-b border-line pb-8 lg:flex-row lg:items-end">
+        <div className="gsap-enquire-reveal flex flex-col justify-between gap-4 sm:gap-6 border-b border-line pb-6 sm:pb-8 lg:flex-row lg:items-end">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2.5">
-              <span className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-brand-cyan">
+            <div className="inline-flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <span className="font-mono text-[10.5px] sm:text-[11px] font-bold uppercase tracking-[0.18em] sm:tracking-[0.2em] text-brand-cyan">
                 03 / ENQUIRE
               </span>
               <span className="h-3.5 w-px bg-line-strong" />
-              <span className="font-mono text-xs text-muted">COHORT 01 · 2 OF 5 SPOTS OPEN</span>
+              <span className="font-mono text-[11px] sm:text-xs text-muted">COHORT 01 · 2 OF 5 SPOTS OPEN</span>
             </div>
-            <h2 className="mt-3 text-[34px] font-semibold leading-[1.04] tracking-[-0.035em] text-fg sm:text-5xl">
+            <h2 className="mt-2.5 sm:mt-3 text-[30px] font-semibold leading-[1.06] sm:leading-[1.04] tracking-[-0.035em] text-fg sm:text-5xl">
               Configure your tool &amp;{" "}
               <span className="serif text-shimmer font-normal italic">claim your spot.</span>
             </h2>
           </div>
 
-          <p className="max-w-md text-sm leading-relaxed text-muted">
+          <p className="max-w-md text-[13.5px] sm:text-sm leading-relaxed text-muted">
             Zero contact forms. Tap 3 quick answers below to generate your custom tool blueprint and
             lock in the £99 Early Access rate via Instagram DM.
           </p>
         </div>
 
         {/* ───────────── Asymmetric 12-Col Spec + Configurator Grid ───────────── */}
-        <div className="gsap-enquire-reveal mt-12 grid gap-6 lg:grid-cols-12 lg:items-stretch">
-          {/* Left 4 Cols: Live Architectural Telemetry Ledger */}
-          <div className="card flex flex-col justify-between p-6 sm:p-8 lg:col-span-4">
+        <div className="gsap-enquire-reveal mt-8 sm:mt-12 grid gap-5 sm:gap-6 lg:grid-cols-12 lg:items-stretch">
+          {/* Left 4 Cols on Desktop (Second on Mobile): Live Architectural Telemetry Ledger */}
+          <div className="card order-2 lg:order-1 flex flex-col justify-between p-5 sm:p-8 lg:col-span-4">
             <div>
-              <div className="flex items-center justify-between border-b border-line pb-4">
+              <div className="flex items-center justify-between border-b border-line pb-3.5 sm:pb-4">
                 <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
                   LIVE SPEC LEDGER
                 </span>
@@ -287,8 +287,8 @@ export function ClaimSpot() {
                 </span>
               </div>
 
-              <dl className="mt-5 space-y-4 text-xs">
-                <div className="rounded-xl border border-line bg-surface-2/50 p-3.5 transition-all">
+              <dl className="mt-4 sm:mt-5 space-y-3 sm:space-y-4 text-xs">
+                <div className="rounded-xl border border-line bg-surface-2/50 p-3 sm:p-3.5 transition-all">
                   <dt className="font-mono text-[10px] uppercase tracking-wider text-muted">
                     01 · Coaching Focus
                   </dt>
@@ -297,7 +297,7 @@ export function ClaimSpot() {
                   </dd>
                 </div>
 
-                <div className="rounded-xl border border-line bg-surface-2/50 p-3.5 transition-all">
+                <div className="rounded-xl border border-line bg-surface-2/50 p-3 sm:p-3.5 transition-all">
                   <dt className="font-mono text-[10px] uppercase tracking-wider text-muted">
                     02 · Replacing Funnel
                   </dt>
@@ -306,7 +306,7 @@ export function ClaimSpot() {
                   </dd>
                 </div>
 
-                <div className="rounded-xl border border-line bg-surface-2/50 p-3.5 transition-all">
+                <div className="rounded-xl border border-line bg-surface-2/50 p-3 sm:p-3.5 transition-all">
                   <dt className="font-mono text-[10px] uppercase tracking-wider text-muted">
                     03 · Monthly Client Target
                   </dt>
@@ -322,7 +322,7 @@ export function ClaimSpot() {
               </dl>
             </div>
 
-            <div className="mt-6 rounded-2xl border border-brand-cyan/25 bg-brand-cyan/[0.06] p-4">
+            <div className="mt-5 sm:mt-6 rounded-2xl border border-brand-cyan/25 bg-brand-cyan/[0.06] p-4">
               <div className="flex items-baseline justify-between">
                 <span className="font-mono text-[10.5px] font-bold uppercase tracking-wider text-brand-cyan">
                   EARLY ACCESS RATE
@@ -342,8 +342,8 @@ export function ClaimSpot() {
             </div>
           </div>
 
-          {/* Right 8 Cols: Interactive Configurator & Blueprint Card */}
-          <div className="card relative flex flex-col justify-between overflow-hidden p-0 lg:col-span-8">
+          {/* Right 8 Cols on Desktop (First on Mobile): Interactive Configurator & Blueprint Card */}
+          <div className="card order-1 lg:order-2 relative flex flex-col justify-between overflow-hidden p-0 lg:col-span-8">
             {/* Top Progress Line */}
             <div className="h-[3px] w-full bg-line">
               <div
@@ -352,11 +352,11 @@ export function ClaimSpot() {
               />
             </div>
 
-            <div className="relative z-10 flex min-h-[450px] flex-col justify-between p-6 sm:p-9 md:p-10">
+            <div className="relative z-10 flex min-h-[340px] sm:min-h-[450px] flex-col justify-between p-4 sm:p-9 md:p-10">
               {/* Stepper Header */}
               {typeof step === "number" ? (
-                <div className="flex items-center justify-between border-b border-line pb-4">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between border-b border-line pb-3.5 sm:pb-4">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     {[0, 1, 2].map((idx) => {
                       const active = step === idx;
                       const done = step > idx;
@@ -369,7 +369,7 @@ export function ClaimSpot() {
                           aria-label={`Step ${idx + 1}`}
                           className={`flex h-7 items-center justify-center rounded-full font-mono text-xs font-bold transition-all duration-300 ${
                             active
-                              ? "w-14 bg-brand-cyan text-white dark:text-[#02131a] shadow-xs"
+                              ? "w-12 sm:w-14 bg-brand-cyan text-white dark:text-[#02131a] shadow-xs"
                               : done
                                 ? "w-7 bg-brand-cyan/20 text-brand-cyan cursor-pointer hover:bg-brand-cyan/30"
                                 : "w-7 bg-surface-2 text-muted-soft"
@@ -379,12 +379,12 @@ export function ClaimSpot() {
                         </button>
                       );
                     })}
-                    <span className="ml-2 text-xs font-medium text-muted">
+                    <span className="ml-1.5 hidden text-xs font-medium text-muted sm:inline">
                       Step {step + 1} of 3
                     </span>
                   </div>
 
-                  <span className="font-mono text-[11px] text-muted-soft">
+                  <span className="font-mono text-[10px] sm:text-[11px] text-muted-soft">
                     ZERO FORMS · 30s CHECK
                   </span>
                 </div>
@@ -400,15 +400,15 @@ export function ClaimSpot() {
               >
                 {/* Step 0: Coaching Focus */}
                 {step === 0 ? (
-                  <div key="step-0" className="animate-step-enter pt-5">
-                    <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
+                  <div key="step-0" className="animate-step-enter pt-4 sm:pt-5">
+                    <p className="font-mono text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
                       QUESTION 01 · COACHING MODEL
                     </p>
-                    <h3 className="mt-1 text-2xl font-bold tracking-tight text-fg sm:text-[26px]">
+                    <h3 className="mt-1 text-xl sm:text-[26px] font-bold tracking-tight text-fg">
                       What is your primary coaching focus?
                     </h3>
 
-                    <div className="mt-6 grid gap-3.5 sm:grid-cols-2">
+                    <div className="mt-4 sm:mt-6 grid gap-2.5 sm:gap-3.5 sm:grid-cols-2">
                       {FITNESS_MODELS.map((m, idx) => {
                         const active = model === m.id;
                         return (
@@ -417,21 +417,21 @@ export function ClaimSpot() {
                             type="button"
                             onClick={() => chooseModel(m.id)}
                             style={{ animationDelay: `${idx * 40}ms` }}
-                            className={`animate-ticket-item group flex items-center justify-between gap-3.5 rounded-2xl border p-4.5 text-left transition-all duration-200 cursor-pointer ${
+                            className={`animate-ticket-item group flex items-center justify-between gap-3 rounded-2xl border p-3.5 sm:p-4.5 text-left transition-all duration-200 cursor-pointer ${
                               active
                                 ? "border-brand-cyan bg-brand-cyan/12 shadow-[0_0_0_3px_var(--brand-cyan-glow)] scale-[1.01]"
                                 : "border-line bg-surface hover:-translate-y-0.5 hover:border-brand-cyan/50 hover:bg-surface-2/70 active:scale-[0.99]"
                             }`}
                           >
-                            <div className="flex min-w-0 items-center gap-3.5">
-                              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 text-2xl transition-transform duration-200 group-hover:scale-105">
+                            <div className="flex min-w-0 items-center gap-3 sm:gap-3.5">
+                              <span className="grid h-10 w-10 sm:h-12 sm:w-12 shrink-0 place-items-center rounded-xl border border-line bg-surface-2 text-xl sm:text-2xl transition-transform duration-200 group-hover:scale-105">
                                 {m.icon}
                               </span>
                               <div className="min-w-0">
-                                <p className="text-[15px] font-semibold text-fg transition-colors group-hover:text-brand-cyan">
+                                <p className="text-[14.5px] sm:text-[15px] font-semibold text-fg transition-colors group-hover:text-brand-cyan">
                                   {m.label}
                                 </p>
-                                <p className="mt-0.5 font-mono text-xs text-muted">{m.tag}</p>
+                                <p className="mt-0.5 font-mono text-[11px] sm:text-xs text-muted">{m.tag}</p>
                               </div>
                             </div>
 
@@ -453,15 +453,15 @@ export function ClaimSpot() {
 
                 {/* Step 1: Current Bio Setup */}
                 {step === 1 ? (
-                  <div key="step-1" className="animate-step-enter pt-5">
-                    <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
+                  <div key="step-1" className="animate-step-enter pt-4 sm:pt-5">
+                    <p className="font-mono text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
                       QUESTION 02 · CURRENT FUNNEL
                     </p>
-                    <h3 className="mt-1 text-2xl font-bold tracking-tight text-fg sm:text-[26px]">
+                    <h3 className="mt-1 text-xl sm:text-[26px] font-bold tracking-tight text-fg">
                       What is in your bio link right now?
                     </h3>
 
-                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                    <div className="mt-4 sm:mt-6 grid gap-2.5 sm:gap-3 sm:grid-cols-2">
                       {CURRENT_SETUPS.map((s, idx) => {
                         const active = setup === s.id;
                         return (
@@ -470,17 +470,17 @@ export function ClaimSpot() {
                             type="button"
                             onClick={() => chooseSetup(s.id)}
                             style={{ animationDelay: `${idx * 40}ms` }}
-                            className={`animate-ticket-item group flex items-center justify-between gap-3 rounded-2xl border p-4.5 text-left transition-all duration-200 cursor-pointer ${
+                            className={`animate-ticket-item group flex items-center justify-between gap-3 rounded-2xl border p-3.5 sm:p-4.5 text-left transition-all duration-200 cursor-pointer ${
                               active
                                 ? "border-brand-cyan bg-brand-cyan/12 shadow-[0_0_0_3px_var(--brand-cyan-glow)] scale-[1.01]"
                                 : "border-line bg-surface hover:-translate-y-0.5 hover:border-brand-cyan/50 hover:bg-surface-2/70 active:scale-[0.99]"
                             }`}
                           >
                             <div>
-                              <p className="text-[15px] font-semibold text-fg transition-colors group-hover:text-brand-cyan">
+                              <p className="text-[14.5px] sm:text-[15px] font-semibold text-fg transition-colors group-hover:text-brand-cyan">
                                 {s.label}
                               </p>
-                              <p className="mt-1 font-mono text-xs text-muted">{s.tag}</p>
+                              <p className="mt-0.5 sm:mt-1 font-mono text-[11px] sm:text-xs text-muted">{s.tag}</p>
                             </div>
 
                             <span
@@ -497,11 +497,11 @@ export function ClaimSpot() {
                       })}
                     </div>
 
-                    <div className="mt-6 flex justify-start">
+                    <div className="mt-5 sm:mt-6 flex justify-start">
                       <button
                         type="button"
                         onClick={() => jumpToStep(0)}
-                        className="text-xs font-semibold text-muted transition hover:text-fg cursor-pointer"
+                        className="py-1 text-xs font-semibold text-muted transition hover:text-fg cursor-pointer"
                       >
                         ← Back to step 1
                       </button>
@@ -511,15 +511,15 @@ export function ClaimSpot() {
 
                 {/* Step 2: Monthly Target */}
                 {step === 2 ? (
-                  <div key="step-2" className="animate-step-enter pt-5">
-                    <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
+                  <div key="step-2" className="animate-step-enter pt-4 sm:pt-5">
+                    <p className="font-mono text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-brand-cyan">
                       QUESTION 03 · MONTHLY TARGET
                     </p>
-                    <h3 className="mt-1 text-2xl font-bold tracking-tight text-fg sm:text-[26px]">
+                    <h3 className="mt-1 text-xl sm:text-[26px] font-bold tracking-tight text-fg">
                       What is your monthly new client goal?
                     </h3>
 
-                    <div className="mt-6 space-y-3">
+                    <div className="mt-4 sm:mt-6 space-y-2.5 sm:space-y-3">
                       {INTAKE_GOALS.map((g, idx) => {
                         const active = goal === g.id;
                         return (
@@ -528,21 +528,21 @@ export function ClaimSpot() {
                             type="button"
                             onClick={() => chooseGoal(g.id)}
                             style={{ animationDelay: `${idx * 40}ms` }}
-                            className={`animate-ticket-item group flex w-full items-center justify-between rounded-2xl border px-5 py-4 text-left transition-all duration-200 cursor-pointer ${
+                            className={`animate-ticket-item group flex w-full items-center justify-between gap-2 rounded-2xl border px-4 py-3.5 sm:px-5 sm:py-4 text-left transition-all duration-200 cursor-pointer ${
                               active
                                 ? "border-brand-cyan bg-brand-cyan/12 shadow-[0_0_0_3px_var(--brand-cyan-glow)] scale-[1.01]"
                                 : "border-line bg-surface hover:-translate-y-0.5 hover:border-brand-cyan/50 hover:bg-surface-2/70 active:scale-[0.99]"
                             }`}
                           >
                             <div>
-                              <p className="text-[15.5px] font-semibold text-fg transition-colors group-hover:text-brand-cyan">
+                              <p className="text-[14.5px] sm:text-[15.5px] font-semibold text-fg transition-colors group-hover:text-brand-cyan">
                                 {g.label}
                               </p>
                               <p className="mt-0.5 text-xs text-muted">{g.sub}</p>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                              <span className="rounded-full bg-brand-cyan/15 px-3 py-1 font-mono text-xs font-bold text-brand-cyan">
+                            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                              <span className="rounded-full bg-brand-cyan/15 px-2.5 sm:px-3 py-1 font-mono text-[11px] sm:text-xs font-bold text-brand-cyan">
                                 {g.revenue}
                               </span>
                               <span
@@ -560,11 +560,11 @@ export function ClaimSpot() {
                       })}
                     </div>
 
-                    <div className="mt-6 flex justify-start">
+                    <div className="mt-5 sm:mt-6 flex justify-start">
                       <button
                         type="button"
                         onClick={() => jumpToStep(1)}
-                        className="text-xs font-semibold text-muted transition hover:text-fg cursor-pointer"
+                        className="py-1 text-xs font-semibold text-muted transition hover:text-fg cursor-pointer"
                       >
                         ← Back to step 2
                       </button>
@@ -574,18 +574,18 @@ export function ClaimSpot() {
 
                 {/* Analyzing Phase */}
                 {step === "analyzing" ? (
-                  <div key="step-analyzing" className="animate-step-enter relative overflow-hidden py-14 text-center">
+                  <div key="step-analyzing" className="animate-step-enter relative overflow-hidden py-10 sm:py-14 text-center">
                     <div className="relative mx-auto grid h-16 w-16 place-items-center rounded-full border border-brand-cyan/35 bg-brand-cyan/12 text-brand-cyan shadow-[0_0_30px_var(--brand-cyan-glow)]">
                       <span className="animate-ping-soft absolute h-10 w-10 rounded-full bg-brand-cyan/30" />
                       <IconSparkle className="h-7 w-7 animate-spin-slow" />
                     </div>
-                    <p className="mt-6 text-lg font-bold tracking-tight text-fg">
+                    <p className="mt-5 sm:mt-6 text-base sm:text-lg font-bold tracking-tight text-fg">
                       Generating your custom tool blueprint…
                     </p>
                     <p className="mt-1 text-xs text-muted">
                       Configuring <span className="font-semibold text-fg">{finalModel.toolConcept}</span>
                     </p>
-                    <div className="mx-auto mt-6 h-1.5 w-48 overflow-hidden rounded-full bg-surface-2">
+                    <div className="mx-auto mt-5 sm:mt-6 h-1.5 w-48 overflow-hidden rounded-full bg-surface-2">
                       <div className="animate-loader-bar h-full rounded-full bg-linear-to-r from-brand-deep via-brand to-brand-cyan" />
                     </div>
                   </div>
@@ -594,21 +594,21 @@ export function ClaimSpot() {
                 {/* Result: Sleek Architectural Blueprint Card */}
                 {step === "result" ? (
                   <div key="step-result" className="animate-ticket-reveal">
-                    <div className="relative overflow-hidden rounded-3xl border border-brand-cyan/30 bg-linear-to-br from-brand-cyan/[0.08] via-surface-2/80 to-surface-2">
+                    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-brand-cyan/30 bg-linear-to-br from-brand-cyan/[0.08] via-surface-2/80 to-surface-2">
                       <div className="grid md:grid-cols-[1fr_196px]">
                         {/* Left Main Blueprint Body */}
-                        <div className="relative p-6 sm:p-8">
+                        <div className="relative p-4.5 sm:p-8">
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-cyan/15 px-3 py-1 font-mono text-[11px] font-bold text-brand-cyan">
+                            <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-cyan/15 px-2.5 sm:px-3 py-1 font-mono text-[10px] sm:text-[11px] font-bold text-brand-cyan">
                               <IconSparkle className="h-3.5 w-3.5" />
                               <span>BLUEPRINT READY · SPOT #04</span>
                             </div>
-                            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10.5px] font-bold text-emerald-400">
+                            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] sm:text-[10.5px] font-bold text-emerald-400">
                               98% FIT MATCH
                             </span>
                           </div>
 
-                          <h3 className="mt-4 text-xl font-extrabold tracking-tight text-fg sm:text-2xl">
+                          <h3 className="mt-3.5 sm:mt-4 text-lg sm:text-2xl font-extrabold tracking-tight text-fg">
                             {finalModel.toolConcept}
                           </h3>
                           <p className="mt-1 text-xs text-muted">
@@ -616,12 +616,12 @@ export function ClaimSpot() {
                             <strong className="font-mono text-brand-cyan">{finalGoal.revenue}</strong>
                           </p>
 
-                          <div className="mt-5 flex flex-wrap gap-2">
+                          <div className="mt-4 sm:mt-5 flex flex-wrap gap-1.5 sm:gap-2">
                             {INCLUDED_PILLS.map((pill, idx) => (
                               <span
                                 key={pill}
                                 style={{ animationDelay: `${120 + idx * 45}ms` }}
-                                className="animate-ticket-item inline-flex items-center gap-1.5 rounded-full border border-line bg-surface/90 px-3 py-1 text-[11.5px] font-medium text-fg"
+                                className="animate-ticket-item inline-flex items-center gap-1.5 rounded-full border border-line bg-surface/90 px-2.5 sm:px-3 py-1 text-[11px] sm:text-[11.5px] font-medium text-fg"
                               >
                                 <IconCheck className="h-3 w-3 text-brand-cyan" />
                                 {pill}
@@ -630,18 +630,25 @@ export function ClaimSpot() {
                           </div>
                         </div>
 
-                        {/* Right Early Access Rate Summary */}
-                        <div className="flex flex-col items-center justify-center border-t border-line bg-surface/60 p-6 text-center md:border-l md:border-t-0">
-                          <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-brand-cyan">
-                            EARLY ACCESS
-                          </p>
-                          <p className="mt-1.5 text-4xl font-extrabold tracking-tight text-fg">
-                            £99
-                          </p>
-                          <p className="mt-0.5 font-mono text-xs text-muted-soft line-through">
-                            £500 standard
-                          </p>
-                          <span className="mt-3 rounded-full bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[10px] font-bold text-emerald-400">
+                        {/* Right Early Access Rate Summary (Horizontal Row on Mobile, Vertical Column on Desktop) */}
+                        <div className="flex flex-row items-center justify-between border-t border-line bg-surface/60 px-4.5 py-4 md:flex-col md:justify-center md:border-l md:border-t-0 md:p-6 md:text-center">
+                          <div className="text-left md:text-center">
+                            <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-brand-cyan">
+                              EARLY ACCESS
+                            </p>
+                            <span className="mt-1 inline-block rounded-full bg-emerald-500/15 px-2 py-0.5 font-mono text-[9.5px] font-bold text-emerald-400 md:hidden">
+                              SAVE £401 · £0/MO
+                            </span>
+                          </div>
+                          <div className="flex items-baseline gap-2 md:mt-1.5 md:flex-col md:items-center md:gap-0">
+                            <p className="text-3xl md:text-4xl font-extrabold tracking-tight text-fg">
+                              £99
+                            </p>
+                            <p className="md:mt-0.5 font-mono text-xs text-muted-soft line-through">
+                              £500 std
+                            </p>
+                          </div>
+                          <span className="mt-3 hidden rounded-full bg-emerald-500/15 px-2.5 py-0.5 font-mono text-[10px] font-bold text-emerald-400 md:inline-block">
                             SAVE £401 · £0/MO
                           </span>
                         </div>
@@ -649,13 +656,13 @@ export function ClaimSpot() {
                     </div>
 
                     {/* Primary Instagram DM CTA */}
-                    <div className="mt-6 text-center">
+                    <div className="mt-5 sm:mt-6 text-center">
                       <a
                         id="claim-ig-dm-btn"
                         href={INSTAGRAM_DM_URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn-primary group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-full py-4 text-[15px] font-semibold shadow-lg shadow-brand-cyan/25 active:scale-[0.99] cursor-pointer"
+                        className="btn-primary group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-full py-3.5 sm:py-4 text-[14.5px] sm:text-[15px] font-semibold shadow-lg shadow-brand-cyan/25 active:scale-[0.99] cursor-pointer"
                       >
                         <IconInstagram className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
                         <span>Claim £99 Spot on Instagram</span>
@@ -665,7 +672,7 @@ export function ClaimSpot() {
                         </span>
                       </a>
 
-                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+                      <div className="mt-3 flex flex-col sm:flex-row sm:flex-wrap items-center justify-between gap-2 text-xs text-muted">
                         <span>
                           Opens <strong className="text-fg">@qualfiapp</strong> DM — tap the{" "}
                           <strong className="text-brand-cyan">Early Access FAQ button</strong> inside to send.
@@ -673,7 +680,7 @@ export function ClaimSpot() {
                         <button
                           type="button"
                           onClick={restart}
-                          className="font-medium text-muted-soft transition hover:text-fg cursor-pointer"
+                          className="py-1 font-medium text-muted-soft transition hover:text-fg cursor-pointer"
                         >
                           ↺ Reconfigure
                         </button>

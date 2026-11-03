@@ -20,6 +20,7 @@ export function PhoneMockup() {
   const frameRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    if (typeof window !== "undefined" && window.matchMedia("(hover: none)").matches) return;
     const el = frameRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -36,7 +37,7 @@ export function PhoneMockup() {
 
   return (
     <div
-      className="relative mx-auto w-[294px] sm:w-[322px] select-none"
+      className="relative mx-auto w-full max-w-[304px] sm:w-[322px] sm:max-w-none select-none"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -77,7 +78,7 @@ export function PhoneMockup() {
         ref={frameRef}
         className="relative rounded-[50px] border border-slate-300/80 bg-linear-to-b from-[#1c2636] to-[#090d14] p-[9px] shadow-[0_40px_100px_-25px_rgba(0,180,210,0.3)] transition-transform duration-300 ease-out dark:border-white/14 dark:shadow-[0_50px_120px_-30px_rgba(0,210,220,0.38)]"
       >
-        <div className="relative h-[612px] overflow-hidden rounded-[42px] bg-linear-to-b from-[#0b131e] via-[#080f18] to-[#05080e]">
+        <div className="relative h-[572px] sm:h-[612px] overflow-hidden rounded-[42px] bg-linear-to-b from-[#0b131e] via-[#080f18] to-[#05080e]">
           {/* Dynamic island */}
           <div className="absolute left-1/2 top-3 z-40 flex h-[24px] w-[94px] -translate-x-1/2 items-center justify-end rounded-full bg-black px-2.5">
             <span className="h-2 w-2 rounded-full bg-emerald-400/80 animate-pulse" />
@@ -138,9 +139,9 @@ export function PhoneMockup() {
           </div>
 
           {/* Updated Results Body (Matches MacroDemo Step 4 Results) */}
-          <div className="space-y-3 px-4 pt-3.5">
+          <div className="space-y-2.5 sm:space-y-3 px-3.5 sm:px-4 pt-3 sm:pt-3.5">
             {/* Cyan-Tinted Daily Target Card */}
-            <div className="rounded-2xl border border-brand-cyan/30 bg-brand-cyan/[0.08] p-3.5">
+            <div className="rounded-2xl border border-brand-cyan/30 bg-brand-cyan/[0.08] p-3 sm:p-3.5">
               <div className="flex items-center justify-between">
                 <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] text-brand-cyan">
                   Daily Target
