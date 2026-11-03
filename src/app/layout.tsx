@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
@@ -113,6 +114,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full bg-bg text-fg transition-colors duration-200">
         {children}
+        <Analytics />
       </body>
     </html>
   );
