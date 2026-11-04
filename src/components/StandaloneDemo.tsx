@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 
 type ViewMode = "funnel" | "whatsapp" | "split";
 type AccentKey = "amber" | "emerald" | "cyan" | "rose";
@@ -12,6 +12,7 @@ type TrainingDays = 3 | 4 | 5;
 type TrainingStyle = "hypertrophy" | "hybrid" | "minimal";
 type BottleneckId = "overload" | "consistency" | "plateau" | "accountability";
 type CoachingIntent = "ready" | "curious" | "blueprint";
+type StepNum = 1 | 2 | 3 | 4 | 5;
 
 const ACCENTS: Record<
   AccentKey,
@@ -213,9 +214,8 @@ export function StandaloneDemo() {
   const [viewMode, setViewMode] = useState<ViewMode>("funnel");
   const [accentKey, setAccentKey] = useState<AccentKey>("amber");
 
-  // Funnel state + directional animation state
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
-  const [stepDir, setStepDir] = useState<"forward" | "backward">("forward");
+  // Funnel state
+  const [step, setStep] = useState<StepNum>(1);
   const [unit, setUnit] = useState<UnitSystem>("metric");
   const [sex, setSex] = useState<Sex>("male");
   const [age, setAge] = useState<number>(28);
@@ -238,10 +238,39 @@ export function StandaloneDemo() {
   const [copiedBrief, setCopiedBrief] = useState<boolean>(false);
   const [replySent, setReplySent] = useState<boolean>(false);
 
+  // Smooth Step Stage Height Measurement (eliminates height snap jumps)
+  const stepRefs = useRef<Record<StepNum, HTMLDivElement | null>>({
+    1: null,
+    2: null,
+    3: null,
+    4: null,
+    5: null,
+  });
+  const [stageHeight, setStageHeight] = useState<number | undefined>(undefined);
+
+  const updateStageHeight = useCallback(() => {
+    const activeEl = stepRefs.current[step];
+    if (activeEl) {
+      setStageHeight(activeEl.offsetHeight);
+    }
+  }, [step]);
+
+  useEffect(() => {
+    updateStageHeight();
+    const activeEl = stepRefs.current[step];
+    if (!activeEl || typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver(() => {
+      setStageHeight(activeEl.offsetHeight);
+    });
+    observer.observe(activeEl);
+    return () => observer.disconnect();
+  }, [step, viewMode, formError, updateStageHeight]);
+
   const accent = ACCENTS[accentKey];
 
-  const goToStep = (next: 1 | 2 | 3 | 4 | 5) => {
-    setStepDir(next >= step ? "forward" : "backward");
+  const goToStep = (next: StepNum) => {
+    setFormError("");
     setStep(next);
   };
 
@@ -280,7 +309,6 @@ export function StandaloneDemo() {
       Math.round(tdee * (1 + selectedGoal.deltaPct))
     );
 
-    // Calorie cycling around training days
     const trainingDayCalories = targetCalories + 160;
     const restDayCalories = Math.max(1300, targetCalories - 140);
 
@@ -420,6 +448,20 @@ export function StandaloneDemo() {
     }
   };
 
+  // Helper class for each persistent step layer so transitions glide with zero DOM mount jump
+  const getStepLayerClass = (panelStep: StepNum) => {
+    const isActive = step === panelStep;
+    const isPast = panelStep < step;
+    return [
+      "w-full transition-[transform,opacity] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[transform,opacity]",
+      isActive
+        ? "relative z-10 opacity-100 translate-x-0 scale-100 pointer-events-auto"
+        : isPast
+          ? "absolute inset-x-0 top-0 z-0 opacity-0 -translate-x-7 scale-[0.985] pointer-events-none select-none"
+          : "absolute inset-x-0 top-0 z-0 opacity-0 translate-x-7 scale-[0.985] pointer-events-none select-none",
+    ].join(" ");
+  };
+
   // Render the PT Funnel Card
   const renderFunnel = () => (
     <div className="w-full max-w-[520px] mx-auto">
@@ -463,7 +505,7 @@ export function StandaloneDemo() {
             <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
               Est. BMR
             </div>
-            <div className="text-xs sm:text-sm font-bold text-white tabular-nums mt-0.5 transition-all duration-300">
+            <div className="text-xs sm:text-sm font-bold text-white tabular-nums mt-0.5">
               {metrics.bmr.toLocaleString()} kcal
             </div>
           </div>
@@ -471,7 +513,7 @@ export function StandaloneDemo() {
             <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
               Maintenance
             </div>
-            <div className="text-xs sm:text-sm font-bold text-white tabular-nums mt-0.5 transition-all duration-300">
+            <div className="text-xs sm:text-sm font-bold text-white tabular-nums mt-0.5">
               {metrics.tdee.toLocaleString()} kcal
             </div>
           </div>
@@ -489,9 +531,15 @@ export function StandaloneDemo() {
         </div>
       </div>
 
-      {/* Step Progress Bar (Steps 1–4) */}
-      {step < 5 && (
-        <div className="mb-4 px-1">
+      {/* Step Progress Bar — Smooth Collapsible Wrapper */}
+      <div
+        className={`grid transition-[grid-template-rows,opacity,margin] duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] px-1 ${
+          step < 5
+            ? "grid-rows-[1fr] opacity-100 mb-4"
+            : "grid-rows-[0fr] opacity-0 mb-0 pointer-events-none"
+        }`}
+      >
+        <div className="overflow-hidden">
           <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
             {[
               { n: 1, label: "01 Metrics" },
@@ -507,7 +555,7 @@ export function StandaloneDemo() {
                   type="button"
                   disabled={item.n > step}
                   onClick={() => {
-                    if (item.n < step) goToStep(item.n as 1 | 2 | 3 | 4);
+                    if (item.n < step) goToStep(item.n as StepNum);
                   }}
                   className={`text-left group py-1 transition-opacity ${
                     item.n < step ? "cursor-pointer" : "cursor-default"
@@ -515,7 +563,7 @@ export function StandaloneDemo() {
                 >
                   <div className="h-1.5 w-full rounded-full bg-white/[0.08] overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-500 ease-out"
+                      className="h-full rounded-full transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
                       style={{
                         width: isCurrent || isDone ? "100%" : "0%",
                         backgroundColor: isCurrent
@@ -545,18 +593,24 @@ export function StandaloneDemo() {
             })}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Main Interactive Card with Animated Step Container */}
+      {/* Main Interactive Card with Smooth Height Morphing & Layered Cross-Glide */}
       <div className="rounded-3xl bg-[#111318]/95 border border-white/[0.08] p-4 sm:p-6 shadow-[0_24px_60px_rgba(0,0,0,0.55)] overflow-hidden">
         <div
-          key={`step-${step}`}
-          className={
-            stepDir === "forward" ? "demo-step-forward" : "demo-step-backward"
-          }
+          className="relative transition-[height] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[height]"
+          style={{
+            height: stageHeight ? `${stageHeight}px` : undefined,
+          }}
         >
           {/* STEP 1: BIOMETRICS */}
-          {step === 1 && (
+          <div
+            ref={(el) => {
+              stepRefs.current[1] = el;
+            }}
+            aria-hidden={step !== 1}
+            className={getStepLayerClass(1)}
+          >
             <div className="space-y-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -768,10 +822,16 @@ export function StandaloneDemo() {
                 Continue to Training Setup →
               </button>
             </div>
-          )}
+          </div>
 
           {/* STEP 2: TRAINING ARCHITECTURE & GOAL */}
-          {step === 2 && (
+          <div
+            ref={(el) => {
+              stepRefs.current[2] = el;
+            }}
+            aria-hidden={step !== 2}
+            className={getStepLayerClass(2)}
+          >
             <div className="space-y-5">
               <div>
                 <span
@@ -965,10 +1025,16 @@ export function StandaloneDemo() {
                 </button>
               </div>
             </div>
-          )}
+          </div>
 
           {/* STEP 3: DAILY ACTIVITY & COACHING BOTTLENECK */}
-          {step === 3 && (
+          <div
+            ref={(el) => {
+              stepRefs.current[3] = el;
+            }}
+            aria-hidden={step !== 3}
+            className={getStepLayerClass(3)}
+          >
             <div className="space-y-5">
               <div>
                 <span
@@ -1106,10 +1172,16 @@ export function StandaloneDemo() {
                 </button>
               </div>
             </div>
-          )}
+          </div>
 
           {/* STEP 4: DATA-BACKED BLUEPRINT GATE */}
-          {step === 4 && (
+          <div
+            ref={(el) => {
+              stepRefs.current[4] = el;
+            }}
+            aria-hidden={step !== 4}
+            className={getStepLayerClass(4)}
+          >
             <form onSubmit={handleUnlock} className="space-y-5">
               {/* Locked Data Preview Banner */}
               <div
@@ -1305,10 +1377,16 @@ export function StandaloneDemo() {
                 </button>
               </div>
             </form>
-          )}
+          </div>
 
           {/* STEP 5: UNLOCKED DATA-BACKED PT BLUEPRINT */}
-          {step === 5 && (
+          <div
+            ref={(el) => {
+              stepRefs.current[5] = el;
+            }}
+            aria-hidden={step !== 5}
+            className={getStepLayerClass(5)}
+          >
             <div className="space-y-5">
               <div className="flex items-center justify-between border-b border-white/[0.07] pb-4 gap-2">
                 <div>
@@ -1332,10 +1410,7 @@ export function StandaloneDemo() {
               </div>
 
               {/* Calorie Cycling & Goal Projection */}
-              <div
-                className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 animate-ticket-item"
-                style={{ animationDelay: "40ms" }}
-              >
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <div
                   className="p-4 rounded-2xl border bg-[#0B0D11] transition-colors duration-500"
                   style={{ borderColor: accent.border }}
@@ -1391,10 +1466,7 @@ export function StandaloneDemo() {
               </div>
 
               {/* Macro Split Ratio Bar + 3 Columns */}
-              <div
-                className="p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07] space-y-3.5 animate-ticket-item"
-                style={{ animationDelay: "110ms" }}
-              >
+              <div className="p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07] space-y-3.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-white">
                     Daily Macro Allocation
@@ -1405,7 +1477,7 @@ export function StandaloneDemo() {
                   </span>
                 </div>
 
-                <div className="h-2.5 w-full rounded-full bg-zinc-900 overflow-hidden flex gap-1 animate-bar">
+                <div className="h-2.5 w-full rounded-full bg-zinc-900 overflow-hidden flex gap-1">
                   <div
                     style={{
                       width: `${metrics.proteinPct}%`,
@@ -1475,10 +1547,7 @@ export function StandaloneDemo() {
               </div>
 
               {/* Planned Weekly PT Training Architecture */}
-              <div
-                className="p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07] space-y-3 animate-ticket-item"
-                style={{ animationDelay: "180ms" }}
-              >
+              <div className="p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07] space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
@@ -1499,7 +1568,6 @@ export function StandaloneDemo() {
                   </span>
                 </div>
 
-                {/* Mobile-friendly rows on <sm, 5-column cards on sm+ */}
                 <div className="grid grid-cols-1 sm:grid-cols-5 gap-1.5">
                   {metrics.schedule.map((slot) => (
                     <div
@@ -1521,10 +1589,7 @@ export function StandaloneDemo() {
               </div>
 
               {/* Direct WhatsApp Consultation Handoff */}
-              <div
-                className="pt-1 space-y-2.5 animate-ticket-item"
-                style={{ animationDelay: "240ms" }}
-              >
+              <div className="pt-1 space-y-2.5">
                 <button
                   type="button"
                   onClick={() => setViewMode("whatsapp")}
@@ -1539,7 +1604,7 @@ export function StandaloneDemo() {
                 </p>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
@@ -1658,48 +1723,18 @@ export function StandaloneDemo() {
     <div className="min-h-screen bg-[#08090C] text-[#F4F4F6] font-sans antialiased flex flex-col justify-between overflow-x-hidden">
       {/* Scoped smooth animations & custom range slider styles */}
       <style>{`
-        @keyframes demoForward {
-          from {
-            opacity: 0;
-            transform: translate3d(14px, 0, 0) scale(0.99);
-            filter: blur(2px);
-          }
-          to {
-            opacity: 1;
-            transform: translate3d(0, 0, 0) scale(1);
-            filter: blur(0);
-          }
-        }
-        @keyframes demoBackward {
-          from {
-            opacity: 0;
-            transform: translate3d(-14px, 0, 0) scale(0.99);
-            filter: blur(2px);
-          }
-          to {
-            opacity: 1;
-            transform: translate3d(0, 0, 0) scale(1);
-            filter: blur(0);
-          }
-        }
         @keyframes demoViewSwitch {
           from {
             opacity: 0;
-            transform: translate3d(0, 10px, 0) scale(0.99);
+            transform: translate3d(0, 8px, 0);
           }
           to {
             opacity: 1;
-            transform: translate3d(0, 0, 0) scale(1);
+            transform: translate3d(0, 0, 0);
           }
         }
-        .demo-step-forward {
-          animation: demoForward 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-        .demo-step-backward {
-          animation: demoBackward 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
         .demo-view-transition {
-          animation: demoViewSwitch 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+          animation: demoViewSwitch 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
         .demo-range {
           -webkit-appearance: none;
@@ -1814,10 +1849,7 @@ export function StandaloneDemo() {
 
       {/* MAIN CONTENT AREA with Animated View Switch */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-3.5 sm:px-4 py-5 sm:py-10">
-        <div
-          key={viewMode}
-          className="demo-view-transition"
-        >
+        <div key={viewMode} className="demo-view-transition">
           {viewMode === "funnel" && renderFunnel()}
           {viewMode === "whatsapp" && renderWhatsAppDemo()}
           {viewMode === "split" && (
