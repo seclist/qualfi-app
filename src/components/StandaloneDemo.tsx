@@ -30,7 +30,7 @@ const ACCENTS: Record<
     softBg: "rgba(245, 158, 11, 0.12)",
     border: "rgba(245, 158, 11, 0.45)",
     text: "#FBBF24",
-    glow: "rgba(245, 158, 11, 0.22)",
+    glow: "rgba(245, 158, 11, 0.24)",
   },
   emerald: {
     name: "Athletic Emerald",
@@ -38,7 +38,7 @@ const ACCENTS: Record<
     softBg: "rgba(16, 185, 129, 0.12)",
     border: "rgba(16, 185, 129, 0.45)",
     text: "#34D399",
-    glow: "rgba(16, 185, 129, 0.22)",
+    glow: "rgba(16, 185, 129, 0.24)",
   },
   cyan: {
     name: "Studio Cyan",
@@ -46,7 +46,7 @@ const ACCENTS: Record<
     softBg: "rgba(6, 182, 212, 0.12)",
     border: "rgba(6, 182, 212, 0.45)",
     text: "#22D3EE",
-    glow: "rgba(6, 182, 212, 0.22)",
+    glow: "rgba(6, 182, 212, 0.24)",
   },
   rose: {
     name: "Apex Crimson",
@@ -54,7 +54,7 @@ const ACCENTS: Record<
     softBg: "rgba(244, 63, 94, 0.12)",
     border: "rgba(244, 63, 94, 0.45)",
     text: "#FB7185",
-    glow: "rgba(244, 63, 94, 0.22)",
+    glow: "rgba(244, 63, 94, 0.24)",
   },
 };
 
@@ -213,8 +213,9 @@ export function StandaloneDemo() {
   const [viewMode, setViewMode] = useState<ViewMode>("funnel");
   const [accentKey, setAccentKey] = useState<AccentKey>("amber");
 
-  // Funnel state
+  // Funnel state + directional animation state
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [stepDir, setStepDir] = useState<"forward" | "backward">("forward");
   const [unit, setUnit] = useState<UnitSystem>("metric");
   const [sex, setSex] = useState<Sex>("male");
   const [age, setAge] = useState<number>(28);
@@ -234,8 +235,15 @@ export function StandaloneDemo() {
   const [whatsapp, setWhatsapp] = useState<string>("");
   const [intent, setIntent] = useState<CoachingIntent>("ready");
   const [formError, setFormError] = useState<string>("");
+  const [copiedBrief, setCopiedBrief] = useState<boolean>(false);
+  const [replySent, setReplySent] = useState<boolean>(false);
 
   const accent = ACCENTS[accentKey];
+
+  const goToStep = (next: 1 | 2 | 3 | 4 | 5) => {
+    setStepDir(next >= step ? "forward" : "backward");
+    setStep(next);
+  };
 
   const selectedGoal = useMemo(
     () => GOALS.find((g) => g.id === goal) ?? GOALS[0],
@@ -370,6 +378,9 @@ export function StandaloneDemo() {
     return `${Math.floor(totalIn / 12)}'${totalIn % 12}"`;
   };
 
+  const pct = (val: number, min: number, max: number) =>
+    `${Math.round(((val - min) / (max - min)) * 100)}%`;
+
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName.trim()) {
@@ -381,7 +392,7 @@ export function StandaloneDemo() {
       return;
     }
     setFormError("");
-    setStep(5);
+    goToStep(5);
   };
 
   const whatsappPayload = `Hi! I just completed the 12-Week Training & Nutrition Diagnostic.
@@ -389,7 +400,7 @@ export function StandaloneDemo() {
 *Client Profile:*
 • Name: ${firstName.trim() || "Alex"}
 • Baseline: ${age}y ${sex === "male" ? "Male" : "Female"} · ${formatHeight(heightCm)} · ${formatWeight(weightKg)} → Goal: ${formatWeight(targetWeightKg)}
-• Phase: ${selectedGoal.title} (${estWeeksLabel(metrics.estWeeks)})
+• Phase: ${selectedGoal.title} (~${metrics.estWeeks} weeks)
 
 *Training Plan:*
 • Split: ${metrics.splitName} (${trainingDays}x/wk)
@@ -401,68 +412,75 @@ export function StandaloneDemo() {
 • Training Days: ${metrics.trainingDayCalories.toLocaleString()} kcal | Rest Days: ${metrics.restDayCalories.toLocaleString()} kcal
 • 1:1 Coaching Status: ${selectedIntent.title}`;
 
-  function estWeeksLabel(w: number) {
-    return `~${w} weeks`;
-  }
+  const handleCopyBrief = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(whatsappPayload);
+      setCopiedBrief(true);
+      setTimeout(() => setCopiedBrief(false), 2000);
+    }
+  };
 
   // Render the PT Funnel Card
   const renderFunnel = () => (
     <div className="w-full max-w-[520px] mx-auto">
       {/* Editorial PT Header Card */}
-      <div className="rounded-3xl bg-[#111318] border border-white/[0.08] p-5 sm:p-6 mb-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
+      <div className="rounded-3xl bg-[#111318]/95 border border-white/[0.08] p-4 sm:p-6 mb-4 shadow-[0_20px_50px_rgba(0,0,0,0.55)] relative overflow-hidden transition-all duration-500">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-24 -right-24 w-56 h-56 rounded-full blur-3xl opacity-25"
-          style={{ background: accent.hex }}
+          className="pointer-events-none absolute -top-24 -right-24 w-60 h-60 rounded-full blur-3xl opacity-25 transition-colors duration-700"
+          style={{ backgroundColor: accent.hex }}
         />
 
-        <div className="relative flex items-center justify-between gap-3 mb-3">
+        <div className="relative flex items-center justify-between gap-2 mb-3">
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/[0.08]">
             <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: accent.hex }}
+              className="w-2 h-2 rounded-full transition-colors duration-500"
+              style={{
+                backgroundColor: accent.hex,
+                boxShadow: `0 0 10px ${accent.hex}`,
+              }}
             />
-            <span className="text-[11px] font-semibold tracking-wider uppercase text-zinc-200">
-              1:1 Performance & Physique Architecture
+            <span className="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase text-zinc-200">
+              1:1 Performance & Physique
             </span>
           </div>
-          <span className="text-[11px] font-medium text-zinc-400 tabular-nums">
+          <span className="text-[11px] font-medium text-zinc-400 tabular-nums shrink-0">
             60-Sec Diagnostic
           </span>
         </div>
 
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug">
+        <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-white leading-snug">
           Custom Training Split & Macro Calculator
         </h1>
-        <p className="text-xs sm:text-sm text-zinc-400 mt-1.5 leading-relaxed">
+        <p className="text-xs sm:text-sm text-zinc-400 mt-1 leading-relaxed">
           Calibrate your exact training-day calories, protein targets, and
           weekly lifting split based on your body metrics and schedule.
         </p>
 
         {/* Live Data Telemetry Strip */}
         <div className="mt-4 pt-3.5 border-t border-white/[0.07] grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-xl bg-black/35 border border-white/[0.05] py-2 px-2">
-            <div className="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
+          <div className="rounded-xl bg-black/40 border border-white/[0.05] py-2 px-1.5">
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
               Est. BMR
             </div>
-            <div className="text-xs sm:text-sm font-bold text-white tabular-nums mt-0.5">
+            <div className="text-xs sm:text-sm font-bold text-white tabular-nums mt-0.5 transition-all duration-300">
               {metrics.bmr.toLocaleString()} kcal
             </div>
           </div>
-          <div className="rounded-xl bg-black/35 border border-white/[0.05] py-2 px-2">
-            <div className="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
+          <div className="rounded-xl bg-black/40 border border-white/[0.05] py-2 px-1.5">
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
               Maintenance
             </div>
-            <div className="text-xs sm:text-sm font-bold text-white tabular-nums mt-0.5">
+            <div className="text-xs sm:text-sm font-bold text-white tabular-nums mt-0.5 transition-all duration-300">
               {metrics.tdee.toLocaleString()} kcal
             </div>
           </div>
-          <div className="rounded-xl bg-black/35 border border-white/[0.05] py-2 px-2">
-            <div className="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
+          <div className="rounded-xl bg-black/40 border border-white/[0.05] py-2 px-1.5">
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-500 font-medium">
               Est. Timeline
             </div>
             <div
-              className="text-xs sm:text-sm font-bold tabular-nums mt-0.5"
+              className="text-xs sm:text-sm font-bold tabular-nums mt-0.5 transition-colors duration-500"
               style={{ color: accent.text }}
             >
               ~{metrics.estWeeks} Weeks
@@ -474,9 +492,9 @@ export function StandaloneDemo() {
       {/* Step Progress Bar (Steps 1–4) */}
       {step < 5 && (
         <div className="mb-4 px-1">
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
             {[
-              { n: 1, label: "01 Biometrics" },
+              { n: 1, label: "01 Metrics" },
               { n: 2, label: "02 Training" },
               { n: 3, label: "03 Lifestyle" },
               { n: 4, label: "04 Blueprint" },
@@ -489,15 +507,15 @@ export function StandaloneDemo() {
                   type="button"
                   disabled={item.n > step}
                   onClick={() => {
-                    if (item.n < step) setStep(item.n as 1 | 2 | 3 | 4);
+                    if (item.n < step) goToStep(item.n as 1 | 2 | 3 | 4);
                   }}
-                  className={`text-left transition-opacity ${
+                  className={`text-left group py-1 transition-opacity ${
                     item.n < step ? "cursor-pointer" : "cursor-default"
                   }`}
                 >
                   <div className="h-1.5 w-full rounded-full bg-white/[0.08] overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-300"
+                      className="h-full rounded-full transition-all duration-500 ease-out"
                       style={{
                         width: isCurrent || isDone ? "100%" : "0%",
                         backgroundColor: isCurrent
@@ -505,15 +523,18 @@ export function StandaloneDemo() {
                           : isDone
                             ? `${accent.hex}99`
                             : "transparent",
+                        boxShadow: isCurrent
+                          ? `0 0 12px ${accent.glow}`
+                          : "none",
                       }}
                     />
                   </div>
                   <span
-                    className={`block text-[11px] font-medium mt-1.5 truncate ${
+                    className={`block text-[10px] sm:text-[11px] font-medium mt-1.5 truncate transition-colors duration-300 ${
                       isCurrent
                         ? "text-white font-semibold"
                         : isDone
-                          ? "text-zinc-300"
+                          ? "text-zinc-300 group-hover:text-white"
                           : "text-zinc-600"
                     }`}
                   >
@@ -526,344 +547,67 @@ export function StandaloneDemo() {
         </div>
       )}
 
-      {/* Main Interactive Card */}
-      <div className="rounded-3xl bg-[#111318] border border-white/[0.08] p-5 sm:p-6 shadow-[0_24px_60px_rgba(0,0,0,0.55)]">
-        {/* STEP 1: BIOMETRICS */}
-        {step === 1 && (
-          <div className="space-y-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span
-                  className="text-[11px] font-semibold uppercase tracking-widest"
-                  style={{ color: accent.text }}
-                >
-                  Step 01 · Body Metrics
-                </span>
-                <h2 className="text-lg sm:text-xl font-bold text-white mt-0.5">
-                  Your current baseline & goal weight
-                </h2>
-              </div>
-
-              {/* Unit Switch */}
-              <div className="inline-flex rounded-xl bg-black/50 p-1 border border-white/[0.07] shrink-0">
-                {(["metric", "imperial"] as const).map((u) => (
-                  <button
-                    key={u}
-                    type="button"
-                    onClick={() => setUnit(u)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-                      unit === u
-                        ? "bg-white text-black"
-                        : "text-zinc-400 hover:text-white"
-                    }`}
+      {/* Main Interactive Card with Animated Step Container */}
+      <div className="rounded-3xl bg-[#111318]/95 border border-white/[0.08] p-4 sm:p-6 shadow-[0_24px_60px_rgba(0,0,0,0.55)] overflow-hidden">
+        <div
+          key={`step-${step}`}
+          className={
+            stepDir === "forward" ? "demo-step-forward" : "demo-step-backward"
+          }
+        >
+          {/* STEP 1: BIOMETRICS */}
+          {step === 1 && (
+            <div className="space-y-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <span
+                    className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest transition-colors duration-500"
+                    style={{ color: accent.text }}
                   >
-                    {u === "metric" ? "KG / CM" : "LBS / FT"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Biological Sex */}
-            <div className="grid grid-cols-2 gap-2.5">
-              {(
-                [
-                  { id: "male", label: "Male", sub: "Mifflin-St Jeor Male" },
-                  {
-                    id: "female",
-                    label: "Female",
-                    sub: "Mifflin-St Jeor Female",
-                  },
-                ] as const
-              ).map((g) => {
-                const active = sex === g.id;
-                return (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => setSex(g.id)}
-                    style={
-                      active
-                        ? {
-                            borderColor: accent.border,
-                            backgroundColor: accent.softBg,
-                          }
-                        : undefined
-                    }
-                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                      active
-                        ? "text-white"
-                        : "bg-[#0B0D11] border-white/[0.07] text-zinc-300 hover:border-white/20"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-white">
-                        {g.label}
-                      </span>
-                      <span
-                        className="w-4 h-4 rounded-full border flex items-center justify-center"
-                        style={
-                          active
-                            ? {
-                                borderColor: accent.hex,
-                                backgroundColor: accent.hex,
-                              }
-                            : { borderColor: "rgba(255,255,255,0.25)" }
-                        }
-                      >
-                        {active && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                        )}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-zinc-500 mt-0.5">
-                      {g.sub}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Sliders */}
-            <div className="space-y-3.5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-2xl bg-[#0B0D11] border border-white/[0.06]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-zinc-400">
-                      Age
-                    </span>
-                    <span className="text-sm font-bold text-white tabular-nums">
-                      {age} yrs
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={18}
-                    max={65}
-                    value={age}
-                    onChange={(e) => setAge(Number(e.target.value))}
-                    style={{ accentColor: accent.hex }}
-                    className="w-full h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
-                  />
+                    Step 01 · Body Metrics
+                  </span>
+                  <h2 className="text-base sm:text-xl font-bold text-white mt-0.5">
+                    Your current baseline & goal weight
+                  </h2>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-[#0B0D11] border border-white/[0.06]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-zinc-400">
-                      Height
-                    </span>
-                    <span className="text-sm font-bold text-white tabular-nums">
-                      {formatHeight(heightCm)}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={148}
-                    max={205}
-                    value={heightCm}
-                    onChange={(e) => setHeightCm(Number(e.target.value))}
-                    style={{ accentColor: accent.hex }}
-                    className="w-full h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-2xl bg-[#0B0D11] border border-white/[0.06]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-zinc-400">
-                      Current Weight
-                    </span>
-                    <span className="text-sm font-bold text-white tabular-nums">
-                      {formatWeight(weightKg)}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={45}
-                    max={140}
-                    value={weightKg}
-                    onChange={(e) => setWeightKg(Number(e.target.value))}
-                    style={{ accentColor: accent.hex }}
-                    className="w-full h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-
-                <div
-                  className="p-3.5 rounded-2xl bg-[#0B0D11] border"
-                  style={{ borderColor: accent.border }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span
-                      className="text-xs font-semibold"
-                      style={{ color: accent.text }}
-                    >
-                      Target Weight
-                    </span>
-                    <span
-                      className="text-sm font-bold tabular-nums"
-                      style={{ color: accent.text }}
-                    >
-                      {formatWeight(targetWeightKg)}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={45}
-                    max={130}
-                    value={targetWeightKg}
-                    onChange={(e) => setTargetWeightKg(Number(e.target.value))}
-                    style={{ accentColor: accent.hex }}
-                    className="w-full h-1.5 bg-zinc-800 rounded-lg cursor-pointer"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              style={{
-                backgroundColor: accent.hex,
-                boxShadow: `0 10px 30px ${accent.glow}`,
-              }}
-              className="w-full py-4 px-5 rounded-2xl text-black font-bold text-sm tracking-tight hover:opacity-95 transition-all cursor-pointer"
-            >
-              Continue to Training Setup →
-            </button>
-          </div>
-        )}
-
-        {/* STEP 2: TRAINING ARCHITECTURE & GOAL */}
-        {step === 2 && (
-          <div className="space-y-5">
-            <div>
-              <span
-                className="text-[11px] font-semibold uppercase tracking-widest"
-                style={{ color: accent.text }}
-              >
-                Step 02 · Training & Phase
-              </span>
-              <h2 className="text-lg sm:text-xl font-bold text-white mt-0.5">
-                Plan around your training schedule
-              </h2>
-            </div>
-
-            {/* Goal Cards */}
-            <div className="space-y-2.5">
-              {GOALS.map((g) => {
-                const active = goal === g.id;
-                return (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => setGoal(g.id)}
-                    style={
-                      active
-                        ? {
-                            borderColor: accent.border,
-                            backgroundColor: accent.softBg,
-                          }
-                        : undefined
-                    }
-                    className={`w-full p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-                      active
-                        ? "text-white"
-                        : "bg-[#0B0D11] border-white/[0.07] hover:border-white/20"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-bold text-white">
-                        {g.title}
-                      </span>
-                      <span
-                        className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
-                        style={
-                          active
-                            ? {
-                                backgroundColor: accent.hex,
-                                color: "#000",
-                              }
-                            : {
-                                backgroundColor: "rgba(255,255,255,0.06)",
-                                color: "rgba(255,255,255,0.6)",
-                              }
-                        }
-                      >
-                        {g.tag}
-                      </span>
-                    </div>
-                    <p className="text-xs text-zinc-400 mt-1">{g.desc}</p>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Training Days Per Week */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold text-zinc-300">
-                  Weekly Training Frequency
-                </label>
-                <span
-                  className="text-[11px] font-semibold"
-                  style={{ color: accent.text }}
-                >
-                  {metrics.splitName}
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-2.5">
-                {(
-                  [
-                    { d: 3, label: "3 Days / wk", sub: "Full Body" },
-                    { d: 4, label: "4 Days / wk", sub: "Upper / Lower" },
-                    { d: 5, label: "5 Days / wk", sub: "PPL + Hybrid" },
-                  ] as const
-                ).map((item) => {
-                  const active = trainingDays === item.d;
-                  return (
+                {/* Unit Switch */}
+                <div className="inline-flex rounded-xl bg-black/50 p-1 border border-white/[0.07] shrink-0">
+                  {(["metric", "imperial"] as const).map((u) => (
                     <button
-                      key={item.d}
+                      key={u}
                       type="button"
-                      onClick={() => setTrainingDays(item.d)}
-                      style={
-                        active
-                          ? {
-                              borderColor: accent.border,
-                              backgroundColor: accent.softBg,
-                            }
-                          : undefined
-                      }
-                      className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
-                        active
-                          ? "text-white"
-                          : "bg-[#0B0D11] border-white/[0.07] text-zinc-400 hover:border-white/20"
+                      onClick={() => setUnit(u)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold transition-all duration-200 cursor-pointer ${
+                        unit === u
+                          ? "bg-white text-black shadow-xs"
+                          : "text-zinc-400 hover:text-white"
                       }`}
                     >
-                      <div className="text-xs sm:text-sm font-bold text-white">
-                        {item.label}
-                      </div>
-                      <div className="text-[11px] text-zinc-500 mt-0.5">
-                        {item.sub}
-                      </div>
+                      {u === "metric" ? "KG / CM" : "LBS / FT"}
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Training Style / Equipment */}
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-2">
-                Training Style & Equipment Access
-              </label>
-              <div className="space-y-2">
-                {TRAINING_STYLES.map((s) => {
-                  const active = trainingStyle === s.id;
+              {/* Biological Sex */}
+              <div className="grid grid-cols-2 gap-2.5">
+                {(
+                  [
+                    { id: "male", label: "Male", sub: "Mifflin-St Jeor Male" },
+                    {
+                      id: "female",
+                      label: "Female",
+                      sub: "Mifflin-St Jeor Female",
+                    },
+                  ] as const
+                ).map((g) => {
+                  const active = sex === g.id;
                   return (
                     <button
-                      key={s.id}
+                      key={g.id}
                       type="button"
-                      onClick={() => setTrainingStyle(s.id)}
+                      onClick={() => setSex(g.id)}
                       style={
                         active
                           ? {
@@ -872,616 +616,931 @@ export function StandaloneDemo() {
                             }
                           : undefined
                       }
-                      className={`w-full py-3 px-3.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      className={`p-3.5 rounded-2xl border text-left transition-all duration-300 active:scale-[0.98] cursor-pointer ${
                         active
                           ? "text-white"
                           : "bg-[#0B0D11] border-white/[0.07] text-zinc-300 hover:border-white/20"
                       }`}
                     >
-                      <div>
-                        <div className="text-xs sm:text-sm font-semibold text-white">
-                          {s.title}
-                        </div>
-                        <div className="text-[11px] text-zinc-500">{s.sub}</div>
-                      </div>
-                      <span
-                        className="w-4 h-4 rounded-full border flex items-center justify-center shrink-0"
-                        style={
-                          active
-                            ? {
-                                borderColor: accent.hex,
-                                backgroundColor: accent.hex,
-                              }
-                            : { borderColor: "rgba(255,255,255,0.25)" }
-                        }
-                      >
-                        {active && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                        )}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 pt-1">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="px-4 py-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] text-zinc-300 font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
-              >
-                ← Back
-              </button>
-              <button
-                type="button"
-                onClick={() => setStep(3)}
-                style={{
-                  backgroundColor: accent.hex,
-                  boxShadow: `0 10px 30px ${accent.glow}`,
-                }}
-                className="flex-1 py-4 px-5 rounded-2xl text-black font-bold text-sm tracking-tight hover:opacity-95 transition-all cursor-pointer"
-              >
-                Continue to Lifestyle →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: DAILY ACTIVITY & COACHING BOTTLENECK */}
-        {step === 3 && (
-          <div className="space-y-5">
-            <div>
-              <span
-                className="text-[11px] font-semibold uppercase tracking-widest"
-                style={{ color: accent.text }}
-              >
-                Step 03 · Expenditure & Focus
-              </span>
-              <h2 className="text-lg sm:text-xl font-bold text-white mt-0.5">
-                Daily movement & primary bottleneck
-              </h2>
-            </div>
-
-            {/* Activity Level */}
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-2">
-                Daily Activity Outside Training (NEAT)
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {ACTIVITIES.map((a) => {
-                  const active = activity === a.id;
-                  return (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() => setActivity(a.id)}
-                      style={
-                        active
-                          ? {
-                              borderColor: accent.border,
-                              backgroundColor: accent.softBg,
-                            }
-                          : undefined
-                      }
-                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
-                        active
-                          ? "text-white"
-                          : "bg-[#0B0D11] border-white/[0.07] hover:border-white/20"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-xs sm:text-sm font-bold text-white">
-                          {a.title}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold text-white">
+                          {g.label}
+                        </span>
+                        <span
+                          className="w-4 h-4 rounded-full border flex items-center justify-center transition-all duration-300"
+                          style={
+                            active
+                              ? {
+                                  borderColor: accent.hex,
+                                  backgroundColor: accent.hex,
+                                }
+                              : { borderColor: "rgba(255,255,255,0.25)" }
+                          }
+                        >
+                          {active && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-black" />
+                          )}
                         </span>
                       </div>
-                      <div
-                        className="text-[11px] font-semibold mt-0.5"
-                        style={{ color: active ? accent.text : "#A1A1AA" }}
-                      >
-                        {a.steps}
+                      <div className="text-[11px] text-zinc-500 mt-0.5">
+                        {g.sub}
                       </div>
-                      <p className="text-[11px] text-zinc-500 mt-1">{a.desc}</p>
                     </button>
                   );
                 })}
               </div>
-            </div>
 
-            {/* Coaching Bottleneck */}
-            <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-2">
-                Where would 1:1 coaching make the biggest difference?
-              </label>
-              <div className="space-y-2">
-                {BOTTLENECKS.map((b) => {
-                  const active = bottleneck === b.id;
-                  return (
-                    <button
-                      key={b.id}
-                      type="button"
-                      onClick={() => setBottleneck(b.id)}
-                      style={
-                        active
-                          ? {
-                              borderColor: accent.border,
-                              backgroundColor: accent.softBg,
-                            }
-                          : undefined
-                      }
-                      className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between gap-3 transition-all cursor-pointer ${
-                        active
-                          ? "text-white"
-                          : "bg-[#0B0D11] border-white/[0.07] hover:border-white/20"
-                      }`}
-                    >
-                      <div>
-                        <div className="text-xs sm:text-sm font-bold text-white">
-                          {b.title}
-                        </div>
-                        <div className="text-[11px] text-zinc-500 mt-0.5">
-                          {b.desc}
-                        </div>
-                      </div>
-                      <span
-                        className="w-4 h-4 rounded-full border flex items-center justify-center shrink-0"
-                        style={
-                          active
-                            ? {
-                                borderColor: accent.hex,
-                                backgroundColor: accent.hex,
-                              }
-                            : { borderColor: "rgba(255,255,255,0.25)" }
-                        }
-                      >
-                        {active && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                        )}
+              {/* Custom Filled Sliders */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-[#0B0D11] border border-white/[0.06]">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className="text-xs font-medium text-zinc-400">
+                        Age
                       </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 pt-1">
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                className="px-4 py-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] text-zinc-300 font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
-              >
-                ← Back
-              </button>
-              <button
-                type="button"
-                onClick={() => setStep(4)}
-                style={{
-                  backgroundColor: accent.hex,
-                  boxShadow: `0 10px 30px ${accent.glow}`,
-                }}
-                className="flex-1 py-4 px-5 rounded-2xl text-black font-bold text-sm tracking-tight hover:opacity-95 transition-all cursor-pointer"
-              >
-                Generate My 12-Week Blueprint →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4: DATA-BACKED BLUEPRINT GATE */}
-        {step === 4 && (
-          <form onSubmit={handleUnlock} className="space-y-5">
-            {/* Locked Data Preview Banner */}
-            <div
-              className="rounded-2xl p-4 border bg-[#0B0D11]"
-              style={{ borderColor: accent.border }}
-            >
-              <div className="flex items-center justify-between text-[11px] mb-3">
-                <span
-                  className="font-bold uppercase tracking-wider"
-                  style={{ color: accent.text }}
-                >
-                  ✓ Diagnostic Complete
-                </span>
-                <span className="text-zinc-400 font-medium">
-                  {metrics.splitName}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <div className="text-[10px] uppercase text-zinc-500">
-                    Training Day
+                      <span className="text-sm font-bold text-white tabular-nums">
+                        {age} yrs
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={18}
+                      max={65}
+                      value={age}
+                      onChange={(e) => setAge(Number(e.target.value))}
+                      style={{
+                        background: `linear-gradient(to right, ${accent.hex} 0%, ${accent.hex} ${pct(age, 18, 65)}, rgba(255,255,255,0.1) ${pct(age, 18, 65)})`,
+                      }}
+                      className="demo-range"
+                    />
                   </div>
-                  <div className="text-sm sm:text-base font-bold text-white mt-0.5 blur-[4px] select-none">
-                    {metrics.trainingDayCalories} kcal
+
+                  <div className="p-3.5 rounded-2xl bg-[#0B0D11] border border-white/[0.06]">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className="text-xs font-medium text-zinc-400">
+                        Height
+                      </span>
+                      <span className="text-sm font-bold text-white tabular-nums">
+                        {formatHeight(heightCm)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={148}
+                      max={205}
+                      value={heightCm}
+                      onChange={(e) => setHeightCm(Number(e.target.value))}
+                      style={{
+                        background: `linear-gradient(to right, ${accent.hex} 0%, ${accent.hex} ${pct(heightCm, 148, 205)}, rgba(255,255,255,0.1) ${pct(heightCm, 148, 205)})`,
+                      }}
+                      className="demo-range"
+                    />
                   </div>
                 </div>
-                <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <div className="text-[10px] uppercase text-zinc-500">
-                    Daily Protein
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-[#0B0D11] border border-white/[0.06]">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className="text-xs font-medium text-zinc-400">
+                        Current Weight
+                      </span>
+                      <span className="text-sm font-bold text-white tabular-nums">
+                        {formatWeight(weightKg)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={45}
+                      max={140}
+                      value={weightKg}
+                      onChange={(e) => setWeightKg(Number(e.target.value))}
+                      style={{
+                        background: `linear-gradient(to right, ${accent.hex} 0%, ${accent.hex} ${pct(weightKg, 45, 140)}, rgba(255,255,255,0.1) ${pct(weightKg, 45, 140)})`,
+                      }}
+                      className="demo-range"
+                    />
                   </div>
+
                   <div
-                    className="text-sm sm:text-base font-bold mt-0.5 blur-[4px] select-none"
-                    style={{ color: accent.text }}
+                    className="p-3.5 rounded-2xl bg-[#0B0D11] border transition-colors duration-500"
+                    style={{ borderColor: accent.border }}
                   >
-                    {metrics.proteinG}g / day
-                  </div>
-                </div>
-                <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                  <div className="text-[10px] uppercase text-zinc-500">
-                    Goal Horizon
-                  </div>
-                  <div className="text-sm sm:text-base font-bold text-white mt-0.5">
-                    ~{metrics.estWeeks} Weeks
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-white">
-                Unlock your training & nutrition blueprint
-              </h2>
-              <p className="text-xs sm:text-sm text-zinc-400 mt-1">
-                View your complete calorie cycling, macro split, and weekly
-                training schedule immediately.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Jordan"
-                  value={firstName}
-                  onChange={(e) => {
-                    setFirstName(e.target.value);
-                    if (formError) setFormError("");
-                  }}
-                  className="w-full px-3.5 py-3 rounded-xl bg-[#0B0D11] border border-white/[0.1] text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/40"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
-                  WhatsApp Number
-                </label>
-                <input
-                  type="tel"
-                  placeholder="+44 7700 900077"
-                  value={whatsapp}
-                  onChange={(e) => {
-                    setWhatsapp(e.target.value);
-                    if (formError) setFormError("");
-                  }}
-                  className="w-full px-3.5 py-3 rounded-xl bg-[#0B0D11] border border-white/[0.1] text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/40"
-                />
-              </div>
-            </div>
-
-            {/* Coaching Qualification */}
-            <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-2">
-                1:1 PT Coaching Interest
-              </label>
-              <div className="space-y-2">
-                {INTENTS.map((item) => {
-                  const active = intent === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setIntent(item.id)}
-                      style={
-                        active
-                          ? {
-                              borderColor: accent.border,
-                              backgroundColor: accent.softBg,
-                            }
-                          : undefined
-                      }
-                      className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between gap-3 transition-all cursor-pointer ${
-                        active
-                          ? "text-white"
-                          : "bg-[#0B0D11] border-white/[0.07] hover:border-white/20"
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs sm:text-sm font-bold text-white">
-                            {item.title}
-                          </span>
-                          <span
-                            className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                            style={
-                              active
-                                ? {
-                                    backgroundColor: accent.hex,
-                                    color: "#000",
-                                  }
-                                : {
-                                    backgroundColor: "rgba(255,255,255,0.06)",
-                                    color: "rgba(255,255,255,0.5)",
-                                  }
-                            }
-                          >
-                            {item.tag}
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-zinc-500 mt-0.5">
-                          {item.sub}
-                        </div>
-                      </div>
+                    <div className="flex items-center justify-between mb-2.5">
                       <span
-                        className="w-4 h-4 rounded-full border flex items-center justify-center shrink-0"
-                        style={
-                          active
-                            ? {
-                                borderColor: accent.hex,
-                                backgroundColor: accent.hex,
-                              }
-                            : { borderColor: "rgba(255,255,255,0.25)" }
-                        }
+                        className="text-xs font-semibold transition-colors duration-500"
+                        style={{ color: accent.text }}
                       >
-                        {active && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                        )}
+                        Target Weight
                       </span>
-                    </button>
-                  );
-                })}
+                      <span
+                        className="text-sm font-bold tabular-nums transition-colors duration-500"
+                        style={{ color: accent.text }}
+                      >
+                        {formatWeight(targetWeightKg)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={45}
+                      max={130}
+                      value={targetWeightKg}
+                      onChange={(e) =>
+                        setTargetWeightKg(Number(e.target.value))
+                      }
+                      style={{
+                        background: `linear-gradient(to right, ${accent.hex} 0%, ${accent.hex} ${pct(targetWeightKg, 45, 130)}, rgba(255,255,255,0.1) ${pct(targetWeightKg, 45, 130)})`,
+                      }}
+                      className="demo-range"
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
 
-            {formError && (
-              <p className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl px-3.5 py-2.5">
-                {formError}
-              </p>
-            )}
-
-            <div className="flex items-center gap-2.5 pt-1">
               <button
                 type="button"
-                onClick={() => setStep(3)}
-                className="px-4 py-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] text-zinc-300 font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
-              >
-                ← Back
-              </button>
-              <button
-                type="submit"
+                onClick={() => goToStep(2)}
                 style={{
                   backgroundColor: accent.hex,
-                  boxShadow: `0 10px 30px ${accent.glow}`,
+                  boxShadow: `0 12px 32px ${accent.glow}`,
                 }}
-                className="flex-1 py-4 px-5 rounded-2xl text-black font-bold text-sm tracking-tight hover:opacity-95 transition-all cursor-pointer"
+                className="w-full py-4 px-5 rounded-2xl text-black font-bold text-sm tracking-tight hover:brightness-105 active:scale-[0.99] transition-all duration-300 cursor-pointer"
               >
-                Unlock Full 12-Week Blueprint →
+                Continue to Training Setup →
               </button>
             </div>
-          </form>
-        )}
+          )}
 
-        {/* STEP 5: UNLOCKED DATA-BACKED PT BLUEPRINT */}
-        {step === 5 && (
-          <div className="space-y-5">
-            <div className="flex items-center justify-between border-b border-white/[0.07] pb-4">
+          {/* STEP 2: TRAINING ARCHITECTURE & GOAL */}
+          {step === 2 && (
+            <div className="space-y-5">
               <div>
                 <span
-                  className="text-[11px] font-bold uppercase tracking-wider"
+                  className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest transition-colors duration-500"
                   style={{ color: accent.text }}
                 >
-                  Custom 12-Week Blueprint · {firstName.trim() || "Client"}
+                  Step 02 · Training & Phase
                 </span>
-                <h2 className="text-lg sm:text-xl font-bold text-white mt-0.5">
-                  {selectedGoal.title}
+                <h2 className="text-base sm:text-xl font-bold text-white mt-0.5">
+                  Plan around your training schedule
                 </h2>
               </div>
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="text-xs font-semibold text-zinc-400 hover:text-white px-3 py-1.5 rounded-xl bg-white/[0.05] cursor-pointer"
-              >
-                Recalculate
-              </button>
-            </div>
 
-            {/* Calorie Cycling & Goal Projection */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              <div
-                className="p-4 rounded-2xl border bg-[#0B0D11]"
-                style={{ borderColor: accent.border }}
-              >
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-                  Daily Average
-                </div>
-                <div className="text-2xl font-extrabold text-white tabular-nums mt-1">
-                  {metrics.targetCalories.toLocaleString()}{" "}
-                  <span className="text-xs font-medium text-zinc-400">
-                    kcal
+              {/* Goal Cards */}
+              <div className="space-y-2.5">
+                {GOALS.map((g) => {
+                  const active = goal === g.id;
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => setGoal(g.id)}
+                      style={
+                        active
+                          ? {
+                              borderColor: accent.border,
+                              backgroundColor: accent.softBg,
+                            }
+                          : undefined
+                      }
+                      className={`w-full p-3.5 sm:p-4 rounded-2xl border text-left transition-all duration-300 active:scale-[0.99] cursor-pointer ${
+                        active
+                          ? "text-white"
+                          : "bg-[#0B0D11] border-white/[0.07] hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-bold text-white">
+                          {g.title}
+                        </span>
+                        <span
+                          className="text-[10px] font-bold px-2.5 py-0.5 rounded-full transition-colors duration-300 shrink-0"
+                          style={
+                            active
+                              ? {
+                                  backgroundColor: accent.hex,
+                                  color: "#000",
+                                }
+                              : {
+                                  backgroundColor: "rgba(255,255,255,0.06)",
+                                  color: "rgba(255,255,255,0.6)",
+                                }
+                          }
+                        >
+                          {g.tag}
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-400 mt-1">{g.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Training Days Per Week */}
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <label className="text-xs font-semibold text-zinc-300">
+                    Weekly Training Frequency
+                  </label>
+                  <span
+                    className="text-[11px] font-semibold truncate transition-colors duration-500"
+                    style={{ color: accent.text }}
+                  >
+                    {metrics.splitName}
                   </span>
                 </div>
-                <div
-                  className="text-[11px] font-medium mt-1"
+                <div className="grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      { d: 3, label: "3 Days / wk", sub: "Full Body" },
+                      { d: 4, label: "4 Days / wk", sub: "Upper / Lower" },
+                      { d: 5, label: "5 Days / wk", sub: "PPL + Hybrid" },
+                    ] as const
+                  ).map((item) => {
+                    const active = trainingDays === item.d;
+                    return (
+                      <button
+                        key={item.d}
+                        type="button"
+                        onClick={() => setTrainingDays(item.d)}
+                        style={
+                          active
+                            ? {
+                                borderColor: accent.border,
+                                backgroundColor: accent.softBg,
+                              }
+                            : undefined
+                        }
+                        className={`p-3 rounded-2xl border text-center transition-all duration-300 active:scale-[0.98] cursor-pointer ${
+                          active
+                            ? "text-white"
+                            : "bg-[#0B0D11] border-white/[0.07] text-zinc-400 hover:border-white/20"
+                        }`}
+                      >
+                        <div className="text-xs sm:text-sm font-bold text-white">
+                          {item.label}
+                        </div>
+                        <div className="text-[10px] sm:text-[11px] text-zinc-500 mt-0.5">
+                          {item.sub}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Training Style / Equipment */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-2">
+                  Training Style & Equipment Access
+                </label>
+                <div className="space-y-2">
+                  {TRAINING_STYLES.map((s) => {
+                    const active = trainingStyle === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setTrainingStyle(s.id)}
+                        style={
+                          active
+                            ? {
+                                borderColor: accent.border,
+                                backgroundColor: accent.softBg,
+                              }
+                            : undefined
+                        }
+                        className={`w-full py-3 px-3.5 rounded-xl border text-left flex items-center justify-between transition-all duration-300 active:scale-[0.99] cursor-pointer ${
+                          active
+                            ? "text-white"
+                            : "bg-[#0B0D11] border-white/[0.07] text-zinc-300 hover:border-white/20"
+                        }`}
+                      >
+                        <div>
+                          <div className="text-xs sm:text-sm font-semibold text-white">
+                            {s.title}
+                          </div>
+                          <div className="text-[11px] text-zinc-500">
+                            {s.sub}
+                          </div>
+                        </div>
+                        <span
+                          className="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-all duration-300"
+                          style={
+                            active
+                              ? {
+                                  borderColor: accent.hex,
+                                  backgroundColor: accent.hex,
+                                }
+                              : { borderColor: "rgba(255,255,255,0.25)" }
+                          }
+                        >
+                          {active && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-black" />
+                          )}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => goToStep(1)}
+                  className="px-4 py-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] active:scale-[0.98] text-zinc-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
+                >
+                  ← Back
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToStep(3)}
+                  style={{
+                    backgroundColor: accent.hex,
+                    boxShadow: `0 12px 32px ${accent.glow}`,
+                  }}
+                  className="flex-1 py-4 px-5 rounded-2xl text-black font-bold text-sm tracking-tight hover:brightness-105 active:scale-[0.99] transition-all duration-300 cursor-pointer"
+                >
+                  Continue to Lifestyle →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: DAILY ACTIVITY & COACHING BOTTLENECK */}
+          {step === 3 && (
+            <div className="space-y-5">
+              <div>
+                <span
+                  className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest transition-colors duration-500"
                   style={{ color: accent.text }}
                 >
-                  {selectedGoal.tag} from TDEE
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07]">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-                  Training Days ({trainingDays}x/wk)
-                </div>
-                <div className="text-xl font-bold text-white tabular-nums mt-1">
-                  {metrics.trainingDayCalories.toLocaleString()}{" "}
-                  <span className="text-xs font-normal text-zinc-400">
-                    kcal
-                  </span>
-                </div>
-                <div className="text-[11px] text-zinc-500 mt-1">
-                  Higher carb performance fuel
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07]">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-                  Rest Days ({7 - trainingDays}x/wk)
-                </div>
-                <div className="text-xl font-bold text-white tabular-nums mt-1">
-                  {metrics.restDayCalories.toLocaleString()}{" "}
-                  <span className="text-xs font-normal text-zinc-400">
-                    kcal
-                  </span>
-                </div>
-                <div className="text-[11px] text-zinc-500 mt-1">
-                  Recovery & fat oxidation
-                </div>
-              </div>
-            </div>
-
-            {/* Macro Split Ratio Bar + 3 Columns */}
-            <div className="p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07] space-y-3.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-white">
-                  Daily Macro Allocation
+                  Step 03 · Expenditure & Focus
                 </span>
-                <span className="text-zinc-400 tabular-nums">
-                  {metrics.proteinPct}% P · {metrics.carbsPct}% C ·{" "}
-                  {metrics.fatPct}% F
-                </span>
+                <h2 className="text-base sm:text-xl font-bold text-white mt-0.5">
+                  Daily movement & primary bottleneck
+                </h2>
               </div>
 
-              <div className="h-2.5 w-full rounded-full bg-zinc-900 overflow-hidden flex gap-1">
-                <div
-                  style={{
-                    width: `${metrics.proteinPct}%`,
-                    backgroundColor: accent.hex,
-                  }}
-                  className="h-full rounded-l-full"
-                />
-                <div
-                  style={{ width: `${metrics.carbsPct}%` }}
-                  className="h-full bg-white/80"
-                />
-                <div
-                  style={{ width: `${metrics.fatPct}%` }}
-                  className="h-full rounded-r-full bg-zinc-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-2.5 pt-1">
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: accent.hex }}
-                    />
-                    <span className="text-[11px] font-semibold text-zinc-300">
-                      Protein
-                    </span>
-                  </div>
-                  <div className="text-xl font-bold text-white tabular-nums mt-1">
-                    {metrics.proteinG}g
-                  </div>
-                  <div className="text-[10px] text-zinc-500 mt-0.5">
-                    ~{Math.round(metrics.proteinG / 4)}g × 4 meals
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-white/80" />
-                    <span className="text-[11px] font-semibold text-zinc-300">
-                      Carbs
-                    </span>
-                  </div>
-                  <div className="text-xl font-bold text-white tabular-nums mt-1">
-                    {metrics.carbsG}g
-                  </div>
-                  <div className="text-[10px] text-zinc-500 mt-0.5">
-                    Pre & post-workout
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-zinc-500" />
-                    <span className="text-[11px] font-semibold text-zinc-300">
-                      Fats
-                    </span>
-                  </div>
-                  <div className="text-xl font-bold text-white tabular-nums mt-1">
-                    {metrics.fatG}g
-                  </div>
-                  <div className="text-[10px] text-zinc-500 mt-0.5">
-                    Hormone baseline
-                  </div>
+              {/* Activity Level */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-2">
+                  Daily Activity Outside Training (NEAT)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {ACTIVITIES.map((a) => {
+                    const active = activity === a.id;
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => setActivity(a.id)}
+                        style={
+                          active
+                            ? {
+                                borderColor: accent.border,
+                                backgroundColor: accent.softBg,
+                              }
+                            : undefined
+                        }
+                        className={`p-3.5 rounded-2xl border text-left transition-all duration-300 active:scale-[0.98] cursor-pointer ${
+                          active
+                            ? "text-white"
+                            : "bg-[#0B0D11] border-white/[0.07] hover:border-white/20"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-xs sm:text-sm font-bold text-white">
+                            {a.title}
+                          </span>
+                        </div>
+                        <div
+                          className="text-[11px] font-semibold mt-0.5 transition-colors duration-300"
+                          style={{ color: active ? accent.text : "#A1A1AA" }}
+                        >
+                          {a.steps}
+                        </div>
+                        <p className="text-[11px] text-zinc-500 mt-1">
+                          {a.desc}
+                        </p>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            </div>
 
-            {/* Planned Weekly PT Training Architecture */}
-            <div className="p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07] space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-                    Recommended Training Architecture
-                  </span>
-                  <h3 className="text-sm font-bold text-white mt-0.5">
-                    {metrics.splitName}
-                  </h3>
+              {/* Coaching Bottleneck */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 mb-2">
+                  Where would 1:1 coaching make the biggest difference?
+                </label>
+                <div className="space-y-2">
+                  {BOTTLENECKS.map((b) => {
+                    const active = bottleneck === b.id;
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={() => setBottleneck(b.id)}
+                        style={
+                          active
+                            ? {
+                                borderColor: accent.border,
+                                backgroundColor: accent.softBg,
+                              }
+                            : undefined
+                        }
+                        className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between gap-3 transition-all duration-300 active:scale-[0.99] cursor-pointer ${
+                          active
+                            ? "text-white"
+                            : "bg-[#0B0D11] border-white/[0.07] hover:border-white/20"
+                        }`}
+                      >
+                        <div>
+                          <div className="text-xs sm:text-sm font-bold text-white">
+                            {b.title}
+                          </div>
+                          <div className="text-[11px] text-zinc-500 mt-0.5">
+                            {b.desc}
+                          </div>
+                        </div>
+                        <span
+                          className="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-all duration-300"
+                          style={
+                            active
+                              ? {
+                                  borderColor: accent.hex,
+                                  backgroundColor: accent.hex,
+                                }
+                              : { borderColor: "rgba(255,255,255,0.25)" }
+                          }
+                        >
+                          {active && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-black" />
+                          )}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <span
-                  className="text-[11px] font-semibold px-2.5 py-1 rounded-lg"
-                  style={{
-                    backgroundColor: accent.softBg,
-                    color: accent.text,
-                  }}
+              </div>
+
+              <div className="flex items-center gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => goToStep(2)}
+                  className="px-4 py-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] active:scale-[0.98] text-zinc-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
                 >
-                  {metrics.stepTarget} steps/day
-                </span>
+                  ← Back
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToStep(4)}
+                  style={{
+                    backgroundColor: accent.hex,
+                    boxShadow: `0 12px 32px ${accent.glow}`,
+                  }}
+                  className="flex-1 py-4 px-5 rounded-2xl text-black font-bold text-sm tracking-tight hover:brightness-105 active:scale-[0.99] transition-all duration-300 cursor-pointer"
+                >
+                  Generate My 12-Week Blueprint →
+                </button>
               </div>
+            </div>
+          )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-1.5">
-                {metrics.schedule.map((slot) => (
-                  <div
-                    key={slot.day}
-                    className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05]"
+          {/* STEP 4: DATA-BACKED BLUEPRINT GATE */}
+          {step === 4 && (
+            <form onSubmit={handleUnlock} className="space-y-5">
+              {/* Locked Data Preview Banner */}
+              <div
+                className="rounded-2xl p-3.5 sm:p-4 border bg-[#0B0D11] transition-colors duration-500"
+                style={{ borderColor: accent.border }}
+              >
+                <div className="flex items-center justify-between text-[11px] mb-3 gap-2">
+                  <span
+                    className="font-bold uppercase tracking-wider transition-colors duration-500"
+                    style={{ color: accent.text }}
                   >
+                    ✓ Diagnostic Complete
+                  </span>
+                  <span className="text-zinc-400 font-medium truncate">
+                    {metrics.splitName}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                    <div className="text-[9px] sm:text-[10px] uppercase text-zinc-500">
+                      Training Day
+                    </div>
+                    <div className="text-xs sm:text-base font-bold text-white mt-0.5 blur-[4px] select-none">
+                      {metrics.trainingDayCalories} kcal
+                    </div>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                    <div className="text-[9px] sm:text-[10px] uppercase text-zinc-500">
+                      Daily Protein
+                    </div>
                     <div
-                      className="text-[10px] font-bold uppercase"
+                      className="text-xs sm:text-base font-bold mt-0.5 blur-[4px] select-none transition-colors duration-500"
                       style={{ color: accent.text }}
                     >
-                      {slot.day}
-                    </div>
-                    <div className="text-[11px] font-medium text-zinc-200 mt-0.5 leading-snug">
-                      {slot.focus}
+                      {metrics.proteinG}g / day
                     </div>
                   </div>
-                ))}
+                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                    <div className="text-[9px] sm:text-[10px] uppercase text-zinc-500">
+                      Goal Horizon
+                    </div>
+                    <div className="text-xs sm:text-base font-bold text-white mt-0.5">
+                      ~{metrics.estWeeks} Weeks
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h2 className="text-base sm:text-xl font-bold text-white">
+                  Unlock your training & nutrition blueprint
+                </h2>
+                <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+                  View your complete calorie cycling, macro split, and weekly
+                  training schedule immediately.
+                </p>
+              </div>
+
+              {/* 16px text-base on mobile prevents iOS Safari auto-zoom */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Jordan"
+                    value={firstName}
+                    onChange={(e) => {
+                      setFirstName(e.target.value);
+                      if (formError) setFormError("");
+                    }}
+                    className="w-full px-3.5 py-3 rounded-xl bg-[#0B0D11] border border-white/[0.1] text-base sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/40 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
+                    WhatsApp Number
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="+44 7700 900077"
+                    value={whatsapp}
+                    onChange={(e) => {
+                      setWhatsapp(e.target.value);
+                      if (formError) setFormError("");
+                    }}
+                    className="w-full px-3.5 py-3 rounded-xl bg-[#0B0D11] border border-white/[0.1] text-base sm:text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/40 transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Coaching Qualification */}
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+                  1:1 PT Coaching Interest
+                </label>
+                <div className="space-y-2">
+                  {INTENTS.map((item) => {
+                    const active = intent === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setIntent(item.id)}
+                        style={
+                          active
+                            ? {
+                                borderColor: accent.border,
+                                backgroundColor: accent.softBg,
+                              }
+                            : undefined
+                        }
+                        className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between gap-3 transition-all duration-300 active:scale-[0.99] cursor-pointer ${
+                          active
+                            ? "text-white"
+                            : "bg-[#0B0D11] border-white/[0.07] hover:border-white/20"
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs sm:text-sm font-bold text-white">
+                              {item.title}
+                            </span>
+                            <span
+                              className="text-[9px] font-bold px-2 py-0.5 rounded-full transition-colors duration-300"
+                              style={
+                                active
+                                  ? {
+                                      backgroundColor: accent.hex,
+                                      color: "#000",
+                                    }
+                                  : {
+                                      backgroundColor:
+                                        "rgba(255,255,255,0.06)",
+                                      color: "rgba(255,255,255,0.5)",
+                                    }
+                              }
+                            >
+                              {item.tag}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-zinc-500 mt-0.5">
+                            {item.sub}
+                          </div>
+                        </div>
+                        <span
+                          className="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-all duration-300"
+                          style={
+                            active
+                              ? {
+                                  borderColor: accent.hex,
+                                  backgroundColor: accent.hex,
+                                }
+                              : { borderColor: "rgba(255,255,255,0.25)" }
+                          }
+                        >
+                          {active && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-black" />
+                          )}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {formError && (
+                <p className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl px-3.5 py-2.5 animate-fade-in-up">
+                  {formError}
+                </p>
+              )}
+
+              <div className="flex items-center gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => goToStep(3)}
+                  className="px-4 py-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] active:scale-[0.98] text-zinc-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
+                >
+                  ← Back
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    backgroundColor: accent.hex,
+                    boxShadow: `0 12px 32px ${accent.glow}`,
+                  }}
+                  className="flex-1 py-4 px-5 rounded-2xl text-black font-bold text-sm tracking-tight hover:brightness-105 active:scale-[0.99] transition-all duration-300 cursor-pointer"
+                >
+                  Unlock Full 12-Week Blueprint →
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 5: UNLOCKED DATA-BACKED PT BLUEPRINT */}
+          {step === 5 && (
+            <div className="space-y-5">
+              <div className="flex items-center justify-between border-b border-white/[0.07] pb-4 gap-2">
+                <div>
+                  <span
+                    className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-colors duration-500"
+                    style={{ color: accent.text }}
+                  >
+                    Custom 12-Week Blueprint · {firstName.trim() || "Client"}
+                  </span>
+                  <h2 className="text-base sm:text-xl font-bold text-white mt-0.5">
+                    {selectedGoal.title}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => goToStep(1)}
+                  className="text-xs font-semibold text-zinc-400 hover:text-white px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] transition-colors cursor-pointer shrink-0"
+                >
+                  Recalculate
+                </button>
+              </div>
+
+              {/* Calorie Cycling & Goal Projection */}
+              <div
+                className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 animate-ticket-item"
+                style={{ animationDelay: "40ms" }}
+              >
+                <div
+                  className="p-4 rounded-2xl border bg-[#0B0D11] transition-colors duration-500"
+                  style={{ borderColor: accent.border }}
+                >
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                    Daily Average
+                  </div>
+                  <div className="text-2xl font-extrabold text-white tabular-nums mt-1">
+                    {metrics.targetCalories.toLocaleString()}{" "}
+                    <span className="text-xs font-medium text-zinc-400">
+                      kcal
+                    </span>
+                  </div>
+                  <div
+                    className="text-[11px] font-medium mt-1 transition-colors duration-500"
+                    style={{ color: accent.text }}
+                  >
+                    {selectedGoal.tag} from TDEE
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:contents gap-2.5">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07]">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                      Lift Days ({trainingDays}x)
+                    </div>
+                    <div className="text-lg sm:text-xl font-bold text-white tabular-nums mt-1">
+                      {metrics.trainingDayCalories.toLocaleString()}{" "}
+                      <span className="text-xs font-normal text-zinc-400">
+                        kcal
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-zinc-500 mt-1">
+                      High-carb fuel
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07]">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                      Rest Days ({7 - trainingDays}x)
+                    </div>
+                    <div className="text-lg sm:text-xl font-bold text-white tabular-nums mt-1">
+                      {metrics.restDayCalories.toLocaleString()}{" "}
+                      <span className="text-xs font-normal text-zinc-400">
+                        kcal
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-zinc-500 mt-1">
+                      Recovery baseline
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Macro Split Ratio Bar + 3 Columns */}
+              <div
+                className="p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07] space-y-3.5 animate-ticket-item"
+                style={{ animationDelay: "110ms" }}
+              >
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-white">
+                    Daily Macro Allocation
+                  </span>
+                  <span className="text-zinc-400 tabular-nums">
+                    {metrics.proteinPct}% P · {metrics.carbsPct}% C ·{" "}
+                    {metrics.fatPct}% F
+                  </span>
+                </div>
+
+                <div className="h-2.5 w-full rounded-full bg-zinc-900 overflow-hidden flex gap-1 animate-bar">
+                  <div
+                    style={{
+                      width: `${metrics.proteinPct}%`,
+                      backgroundColor: accent.hex,
+                    }}
+                    className="h-full rounded-l-full transition-all duration-500"
+                  />
+                  <div
+                    style={{ width: `${metrics.carbsPct}%` }}
+                    className="h-full bg-white/85 transition-all duration-500"
+                  />
+                  <div
+                    style={{ width: `${metrics.fatPct}%` }}
+                    className="h-full rounded-r-full bg-zinc-500 transition-all duration-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 sm:gap-2.5 pt-1">
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="w-2 h-2 rounded-full transition-colors duration-500"
+                        style={{ backgroundColor: accent.hex }}
+                      />
+                      <span className="text-[11px] font-semibold text-zinc-300">
+                        Protein
+                      </span>
+                    </div>
+                    <div className="text-lg sm:text-xl font-bold text-white tabular-nums mt-1">
+                      {metrics.proteinG}g
+                    </div>
+                    <div className="text-[10px] text-zinc-500 mt-0.5">
+                      ~{Math.round(metrics.proteinG / 4)}g × 4 meals
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-white/85" />
+                      <span className="text-[11px] font-semibold text-zinc-300">
+                        Carbs
+                      </span>
+                    </div>
+                    <div className="text-lg sm:text-xl font-bold text-white tabular-nums mt-1">
+                      {metrics.carbsG}g
+                    </div>
+                    <div className="text-[10px] text-zinc-500 mt-0.5">
+                      Peri-workout
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-zinc-500" />
+                      <span className="text-[11px] font-semibold text-zinc-300">
+                        Fats
+                      </span>
+                    </div>
+                    <div className="text-lg sm:text-xl font-bold text-white tabular-nums mt-1">
+                      {metrics.fatG}g
+                    </div>
+                    <div className="text-[10px] text-zinc-500 mt-0.5">
+                      Hormone floor
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Planned Weekly PT Training Architecture */}
+              <div
+                className="p-4 rounded-2xl bg-[#0B0D11] border border-white/[0.07] space-y-3 animate-ticket-item"
+                style={{ animationDelay: "180ms" }}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                      Recommended Training Split
+                    </span>
+                    <h3 className="text-xs sm:text-sm font-bold text-white mt-0.5">
+                      {metrics.splitName}
+                    </h3>
+                  </div>
+                  <span
+                    className="text-[10px] sm:text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 transition-colors duration-500"
+                    style={{
+                      backgroundColor: accent.softBg,
+                      color: accent.text,
+                    }}
+                  >
+                    {metrics.stepTarget} steps/day
+                  </span>
+                </div>
+
+                {/* Mobile-friendly rows on <sm, 5-column cards on sm+ */}
+                <div className="grid grid-cols-1 sm:grid-cols-5 gap-1.5">
+                  {metrics.schedule.map((slot) => (
+                    <div
+                      key={slot.day}
+                      className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05] flex sm:block items-center justify-between gap-2"
+                    >
+                      <div
+                        className="text-[10px] font-bold uppercase transition-colors duration-500 shrink-0"
+                        style={{ color: accent.text }}
+                      >
+                        {slot.day}
+                      </div>
+                      <div className="text-[11px] font-medium text-zinc-200 sm:mt-0.5 leading-snug text-right sm:text-left">
+                        {slot.focus}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Direct WhatsApp Consultation Handoff */}
+              <div
+                className="pt-1 space-y-2.5 animate-ticket-item"
+                style={{ animationDelay: "240ms" }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setViewMode("whatsapp")}
+                  className="w-full py-4 px-5 rounded-2xl bg-[#25D366] hover:bg-[#2be06f] active:scale-[0.99] text-black font-bold text-sm flex items-center justify-center gap-2 shadow-[0_12px_30px_rgba(37,211,102,0.28)] transition-all cursor-pointer"
+                >
+                  <span>Send Blueprint to Coach on WhatsApp</span>
+                  <span>→</span>
+                </button>
+                <p className="text-[11px] text-center text-zinc-500">
+                  Opens WhatsApp with your calculated macros & training split
+                  ready to send.
+                </p>
               </div>
             </div>
-
-            {/* Direct WhatsApp Consultation Handoff */}
-            <div className="pt-1 space-y-2.5">
-              <button
-                type="button"
-                onClick={() => setViewMode("whatsapp")}
-                className="w-full py-4 px-5 rounded-2xl bg-[#25D366] hover:bg-[#2be06f] text-black font-bold text-sm flex items-center justify-center gap-2 shadow-[0_12px_30px_rgba(37,211,102,0.25)] transition-all cursor-pointer"
-              >
-                <span>Send Blueprint to Coach on WhatsApp</span>
-                <span>→</span>
-              </button>
-              <p className="text-[11px] text-center text-zinc-500">
-                Opens WhatsApp with your calculated macros & training split
-                ready to send.
-              </p>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1491,48 +1550,58 @@ export function StandaloneDemo() {
     <div className="w-full max-w-[500px] mx-auto">
       <div className="rounded-3xl bg-[#0F171A] border border-white/10 overflow-hidden shadow-[0_24px_70px_rgba(0,0,0,0.65)]">
         {/* Coach Lead Intelligence Header */}
-        <div className="bg-[#182329] px-5 py-4 border-b border-white/[0.08] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#25D366] text-black font-extrabold text-sm flex items-center justify-center">
+        <div className="bg-[#182329] px-4 sm:px-5 py-4 border-b border-white/[0.08] flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-full bg-[#25D366] text-black font-extrabold text-sm flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(37,211,102,0.35)]">
               {(firstName.trim()?.[0] || "A").toUpperCase()}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-white">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-bold text-white truncate">
                   {firstName.trim() || "Alex"} · Bio-Link Lead
                 </span>
-                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#25D366]/20 text-[#25D366]">
+                <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#25D366]/20 text-[#25D366]">
                   {selectedIntent.tag}
                 </span>
               </div>
-              <div className="text-[11px] text-zinc-400 mt-0.5">
+              <div className="text-[11px] text-zinc-400 mt-0.5 truncate">
                 {whatsapp.trim() || "+44 7700 900077"} · Verified via Funnel
               </div>
             </div>
           </div>
 
-          <span className="text-[11px] font-semibold text-emerald-400">
-            ● Live
-          </span>
+          <button
+            type="button"
+            onClick={handleCopyBrief}
+            className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-white/[0.07] hover:bg-white/[0.12] text-zinc-200 transition-colors cursor-pointer shrink-0"
+          >
+            {copiedBrief ? "✓ Copied" : "Copy Brief"}
+          </button>
         </div>
 
         {/* Structured Lead Telemetry Bar for the PT */}
-        <div className="grid grid-cols-3 gap-2 p-3.5 bg-[#121B20] border-b border-white/[0.06] text-center">
+        <div className="grid grid-cols-3 gap-2 p-3 sm:p-3.5 bg-[#121B20] border-b border-white/[0.06] text-center">
           <div className="p-2 rounded-xl bg-black/30">
-            <div className="text-[10px] uppercase text-zinc-400">Goal</div>
+            <div className="text-[9px] sm:text-[10px] uppercase text-zinc-400">
+              Goal
+            </div>
             <div className="text-xs font-bold text-white truncate mt-0.5">
               {selectedGoal.title.split(" ")[0]}{" "}
               {selectedGoal.title.split(" ")[1]}
             </div>
           </div>
           <div className="p-2 rounded-xl bg-black/30">
-            <div className="text-[10px] uppercase text-zinc-400">Split</div>
+            <div className="text-[9px] sm:text-[10px] uppercase text-zinc-400">
+              Split
+            </div>
             <div className="text-xs font-bold text-white mt-0.5">
               {trainingDays} Days / Wk
             </div>
           </div>
           <div className="p-2 rounded-xl bg-black/30">
-            <div className="text-[10px] uppercase text-zinc-400">Target</div>
+            <div className="text-[9px] sm:text-[10px] uppercase text-zinc-400">
+              Target
+            </div>
             <div className="text-xs font-bold text-[#25D366] tabular-nums mt-0.5">
               {metrics.targetCalories.toLocaleString()} kcal
             </div>
@@ -1540,15 +1609,18 @@ export function StandaloneDemo() {
         </div>
 
         {/* WhatsApp Message Thread */}
-        <div className="p-5 space-y-4 bg-[#0B1215]">
+        <div className="p-4 sm:p-5 space-y-4 bg-[#0B1215]">
           <div className="text-center">
-            <span className="inline-block px-3 py-1 rounded-full bg-white/[0.05] text-[11px] text-zinc-400">
+            <span className="inline-block px-3 py-1 rounded-full bg-white/[0.05] text-[10px] sm:text-[11px] text-zinc-400">
               Auto-populated when client taps &ldquo;Send Blueprint&rdquo;
             </span>
           </div>
 
           {/* Incoming Client Message Bubble */}
-          <div className="rounded-2xl rounded-tl-sm bg-[#1B272E] border border-white/[0.07] p-4 text-xs sm:text-[13px] text-zinc-100 whitespace-pre-line leading-relaxed shadow-md">
+          <div
+            className="rounded-2xl rounded-tl-sm bg-[#1B272E] border border-white/[0.07] p-3.5 sm:p-4 text-xs sm:text-[13px] text-zinc-100 whitespace-pre-line leading-relaxed shadow-md animate-ticket-item"
+            style={{ animationDelay: "50ms" }}
+          >
             {whatsappPayload}
             <div className="text-[10px] text-zinc-400 text-right mt-2">
               Just now · Delivered
@@ -1556,15 +1628,25 @@ export function StandaloneDemo() {
           </div>
 
           {/* Example 1-Tap Coach Reply */}
-          <div className="rounded-2xl rounded-tr-sm bg-[#005C4B] p-4 text-xs sm:text-[13px] text-white leading-relaxed ml-8 shadow-md">
+          <div
+            className="rounded-2xl rounded-tr-sm bg-[#005C4B] p-3.5 sm:p-4 text-xs sm:text-[13px] text-white leading-relaxed ml-4 sm:ml-8 shadow-md animate-ticket-item"
+            style={{ animationDelay: "140ms" }}
+          >
             Hey {firstName.trim() || "Alex"}! Just reviewed your{" "}
             {metrics.targetCalories.toLocaleString()} kcal blueprint and{" "}
             {trainingDays}-day split. Since your main focus is{" "}
             {selectedBottleneck.title.toLowerCase()}, I have 2 spots open this
             week to build your full 12-week program—are you free for a quick
             10-min chat today?
-            <div className="text-[10px] text-emerald-200/70 text-right mt-1.5">
-              Suggested 1-Tap PT Reply ✓✓
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10 text-[10px] text-emerald-200/80">
+              <span>Suggested 1-Tap PT Reply</span>
+              <button
+                type="button"
+                onClick={() => setReplySent((prev) => !prev)}
+                className="font-bold underline underline-offset-2 cursor-pointer"
+              >
+                {replySent ? "Sent ✓✓" : "Simulate Send →"}
+              </button>
             </div>
           </div>
         </div>
@@ -1573,18 +1655,98 @@ export function StandaloneDemo() {
   );
 
   return (
-    <div className="min-h-screen bg-[#08090C] text-[#F4F4F6] font-sans antialiased flex flex-col justify-between">
-      {/* TOP DEMO SWITCHER BAR */}
+    <div className="min-h-screen bg-[#08090C] text-[#F4F4F6] font-sans antialiased flex flex-col justify-between overflow-x-hidden">
+      {/* Scoped smooth animations & custom range slider styles */}
+      <style>{`
+        @keyframes demoForward {
+          from {
+            opacity: 0;
+            transform: translate3d(14px, 0, 0) scale(0.99);
+            filter: blur(2px);
+          }
+          to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+            filter: blur(0);
+          }
+        }
+        @keyframes demoBackward {
+          from {
+            opacity: 0;
+            transform: translate3d(-14px, 0, 0) scale(0.99);
+            filter: blur(2px);
+          }
+          to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+            filter: blur(0);
+          }
+        }
+        @keyframes demoViewSwitch {
+          from {
+            opacity: 0;
+            transform: translate3d(0, 10px, 0) scale(0.99);
+          }
+          to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+          }
+        }
+        .demo-step-forward {
+          animation: demoForward 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .demo-step-backward {
+          animation: demoBackward 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .demo-view-transition {
+          animation: demoViewSwitch 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .demo-range {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 7px;
+          border-radius: 999px;
+          outline: none;
+          cursor: pointer;
+          touch-action: pan-y;
+          transition: background 0.25s ease;
+        }
+        .demo-range::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 22px;
+          height: 22px;
+          border-radius: 999px;
+          background: #ffffff;
+          border: 2px solid #0B0D11;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+          transition: transform 0.15s ease, box-shadow 0.2s ease;
+        }
+        .demo-range::-webkit-slider-thumb:active {
+          transform: scale(1.12);
+        }
+        .demo-range::-moz-range-thumb {
+          width: 22px;
+          height: 22px;
+          border-radius: 999px;
+          background: #ffffff;
+          border: 2px solid #0B0D11;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+          transition: transform 0.15s ease;
+        }
+      `}</style>
+
+      {/* TOP DEMO SWITCHER BAR — Optimized for Mobile & Desktop */}
       <div className="sticky top-0 z-40 border-b border-white/[0.08] bg-[#0B0D12]/90 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
-          {/* Left: View Switcher Tabs */}
-          <div className="inline-flex items-center rounded-xl bg-black/60 p-1 border border-white/[0.08]">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+          {/* Top Row on Mobile: View Switcher Tabs */}
+          <div className="grid grid-cols-2 md:inline-flex items-center rounded-xl bg-black/60 p-1 border border-white/[0.08]">
             <button
               type="button"
               onClick={() => setViewMode("funnel")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 cursor-pointer ${
                 viewMode === "funnel"
-                  ? "bg-white text-black shadow-xs"
+                  ? "bg-white text-black shadow-sm"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
@@ -1593,21 +1755,21 @@ export function StandaloneDemo() {
             <button
               type="button"
               onClick={() => setViewMode("whatsapp")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer ${
                 viewMode === "whatsapp"
-                  ? "bg-[#25D366] text-black shadow-xs"
+                  ? "bg-[#25D366] text-black shadow-sm"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-current" />
-              WhatsApp Lead Demo
+              WhatsApp Demo
             </button>
             <button
               type="button"
               onClick={() => setViewMode("split")}
-              className={`hidden md:inline-flex px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`hidden md:inline-flex px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 cursor-pointer ${
                 viewMode === "split"
-                  ? "bg-white text-black shadow-xs"
+                  ? "bg-white text-black shadow-sm"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
@@ -1615,22 +1777,21 @@ export function StandaloneDemo() {
             </button>
           </div>
 
-          {/* Right: Accent Theme Dots + Step Quick Jump */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] text-zinc-500 mr-1 hidden sm:inline">
-                Brand Accent:
-              </span>
+          {/* Second Row on Mobile: Accent Theme Dots + Step Quick Jump */}
+          <div className="flex items-center justify-between sm:justify-end gap-3 px-0.5 sm:px-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-zinc-500">Accent:</span>
               {(Object.keys(ACCENTS) as AccentKey[]).map((k) => (
                 <button
                   key={k}
                   type="button"
+                  aria-label={ACCENTS[k].name}
                   title={ACCENTS[k].name}
                   onClick={() => setAccentKey(k)}
-                  className={`w-5 h-5 rounded-full transition-transform cursor-pointer ${
+                  className={`w-5 h-5 rounded-full transition-all duration-300 cursor-pointer ${
                     accentKey === k
                       ? "scale-110 ring-2 ring-white ring-offset-2 ring-offset-[#0B0D12]"
-                      : "opacity-60 hover:opacity-100"
+                      : "opacity-55 hover:opacity-100 hover:scale-105"
                   }`}
                   style={{ backgroundColor: ACCENTS[k].hex }}
                 />
@@ -1639,27 +1800,35 @@ export function StandaloneDemo() {
 
             <button
               type="button"
-              onClick={() => setStep(step === 5 ? 1 : 5)}
-              className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 cursor-pointer"
+              onClick={() => {
+                if (viewMode === "whatsapp") setViewMode("funnel");
+                goToStep(step === 5 ? 1 : 5);
+              }}
+              className="text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] active:scale-[0.98] text-zinc-200 transition-all cursor-pointer"
             >
-              {step === 5 ? "Back to Step 1" : "Preview Unlocked Plan"}
+              {step === 5 ? "Reset to Step 1" : "Preview Unlocked Plan"}
             </button>
           </div>
         </div>
       </div>
 
-      {/* MAIN CONTENT AREA */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 sm:py-10">
-        {viewMode === "funnel" && renderFunnel()}
-        {viewMode === "whatsapp" && renderWhatsAppDemo()}
-        {viewMode === "split" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <div className="lg:col-span-7">{renderFunnel()}</div>
-            <div className="lg:col-span-5 lg:sticky lg:top-20">
-              {renderWhatsAppDemo()}
+      {/* MAIN CONTENT AREA with Animated View Switch */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-3.5 sm:px-4 py-5 sm:py-10">
+        <div
+          key={viewMode}
+          className="demo-view-transition"
+        >
+          {viewMode === "funnel" && renderFunnel()}
+          {viewMode === "whatsapp" && renderWhatsAppDemo()}
+          {viewMode === "split" && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="lg:col-span-7">{renderFunnel()}</div>
+              <div className="lg:col-span-5 lg:sticky lg:top-20">
+                {renderWhatsAppDemo()}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
 
       <footer className="py-6 text-center text-[11px] text-zinc-600">
