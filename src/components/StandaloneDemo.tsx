@@ -244,8 +244,6 @@ export function StandaloneDemo() {
   const [unreadBotAlert, setUnreadBotAlert] = useState<boolean>(false);
   const [showBotBanner, setShowBotBanner] = useState<boolean>(false);
   const [copiedBrief, setCopiedBrief] = useState<boolean>(false);
-  const [showOutreachPreview, setShowOutreachPreview] =
-    useState<boolean>(false);
 
   const stepStageRef = useRef<HTMLDivElement>(null);
   const viewStageRef = useRef<HTMLDivElement>(null);
@@ -1531,39 +1529,6 @@ export function StandaloneDemo() {
               </span>
             </div>
           </div>
-
-          {/* Interactive WhatsApp Cloud API Bot Action Buttons for the PT */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setShowOutreachPreview((prev) => !prev)}
-              className="py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#2be06f] text-black font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
-            >
-              <span>💬 Tap to Message {clientDisplayName}</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleCopyBrief}
-              className="py-3 px-4 rounded-xl bg-[#1B272E] hover:bg-[#24333C] border border-white/[0.08] text-zinc-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            >
-              <span>{copiedBrief ? "✓ Dossier Copied" : "📋 Copy Lead Brief"}</span>
-            </button>
-          </div>
-
-          {/* Optional Preview of the 1-Tap Pre-Filled Message when PT taps "Message Client" */}
-          {showOutreachPreview && (
-            <div className="rounded-2xl bg-[#005C4B] p-3.5 text-xs text-white leading-relaxed border border-emerald-400/20">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-200 mb-1">
-                Pre-filled on PT’s phone when tapping &ldquo;Message{" "}
-                {clientDisplayName}&rdquo;:
-              </div>
-              “Hey {clientDisplayName}! Just got your{" "}
-              {metrics.targetCalories.toLocaleString()} kcal blueprint &{" "}
-              {trainingDays}-day split from my assessment tool. Saw your main
-              focus is {selectedBottleneck.title.toLowerCase()}—are you free for
-              a quick 10-min chat today to map out your 12-week plan?”
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -1641,61 +1606,68 @@ export function StandaloneDemo() {
       {/* TOP DEMO SWITCHER BAR — Optimized for Mobile & Desktop */}
       <div className="sticky top-0 z-40 border-b border-white/[0.08] bg-[#0B0D12]/90 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-          {/* Top Row on Mobile: View Switcher Tabs */}
-          <div className="grid grid-cols-2 md:inline-flex items-center rounded-xl bg-black/60 p-1 border border-white/[0.08]">
-            <button
-              type="button"
-              onClick={() => setViewMode("funnel")}
-              className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 cursor-pointer ${
-                viewMode === "funnel"
-                  ? "bg-white text-black shadow-sm"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              1. Client Funnel
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setUnreadBotAlert(false);
-                setShowBotBanner(false);
-                setViewMode("whatsapp");
-              }}
-              className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer relative ${
-                viewMode === "whatsapp"
-                  ? "bg-[#25D366] text-black shadow-sm"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  unreadBotAlert
-                    ? "bg-[#25D366] animate-ping"
-                    : "bg-current"
+          {/* Left: View Switcher Tabs + Early Access Beta Pill */}
+          <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2.5">
+            <div className="grid grid-cols-2 md:inline-flex flex-1 sm:flex-initial items-center rounded-xl bg-black/60 p-1 border border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => setViewMode("funnel")}
+                className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 cursor-pointer ${
+                  viewMode === "funnel"
+                    ? "bg-white text-black shadow-sm"
+                    : "text-zinc-400 hover:text-white"
                 }`}
-              />
-              <span>2. PT WhatsApp Bot</span>
-              {unreadBotAlert && viewMode !== "whatsapp" && (
-                <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-[#25D366] text-black text-[9px] font-black">
-                  NEW
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setUnreadBotAlert(false);
-                setShowBotBanner(false);
-                setViewMode("split");
-              }}
-              className={`hidden md:inline-flex px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 cursor-pointer ${
-                viewMode === "split"
-                  ? "bg-white text-black shadow-sm"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              Split View
-            </button>
+              >
+                1. Client Funnel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setUnreadBotAlert(false);
+                  setShowBotBanner(false);
+                  setViewMode("whatsapp");
+                }}
+                className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer relative ${
+                  viewMode === "whatsapp"
+                    ? "bg-[#25D366] text-black shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    unreadBotAlert
+                      ? "bg-[#25D366] animate-ping"
+                      : "bg-current"
+                  }`}
+                />
+                <span>2. PT WhatsApp Bot</span>
+                {unreadBotAlert && viewMode !== "whatsapp" && (
+                  <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-[#25D366] text-black text-[9px] font-black">
+                    NEW
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setUnreadBotAlert(false);
+                  setShowBotBanner(false);
+                  setViewMode("split");
+                }}
+                className={`hidden md:inline-flex px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 cursor-pointer ${
+                  viewMode === "split"
+                    ? "bg-white text-black shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                Split View
+              </button>
+            </div>
+
+            <span className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              Early Access Demo · Beta
+            </span>
           </div>
 
           {/* Second Row on Mobile: Accent Theme Dots + Step Quick Jump */}
@@ -1735,6 +1707,17 @@ export function StandaloneDemo() {
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-3.5 sm:px-4 py-5 sm:py-10">
+        {/* Early Access / Beta Notice Pill above the Demo */}
+        <div className="flex justify-center mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/[0.08] border border-amber-500/20 text-[11px] text-amber-200/90 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span>
+              <strong>Early Access Demo</strong> · Currently in beta &amp;
+              active development
+            </span>
+          </div>
+        </div>
+
         <div ref={viewStageRef}>
           {viewMode === "funnel" && renderFunnel()}
           {viewMode === "whatsapp" && renderWhatsAppDemo()}
@@ -1749,8 +1732,13 @@ export function StandaloneDemo() {
         </div>
       </main>
 
-      <footer className="py-6 text-center text-[11px] text-zinc-600">
-        1:1 Performance & Nutrition Diagnostic · Interactive Demo
+      <footer className="py-6 text-center text-[11px] text-zinc-500 space-y-1">
+        <p className="font-semibold text-zinc-400">
+          Early Access Demo · Beta Build (In Active Development)
+        </p>
+        <p className="text-zinc-600">
+          1:1 Performance &amp; Nutrition Diagnostic Preview
+        </p>
       </footer>
     </div>
   );
