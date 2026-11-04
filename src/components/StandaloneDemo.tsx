@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import gsap from "gsap";
+import { playWhatsAppPing } from "@/lib/audio";
 
 type ViewMode = "funnel" | "whatsapp" | "split";
 type AccentKey = "amber" | "emerald" | "cyan" | "rose";
@@ -14,6 +15,7 @@ type TrainingStyle = "hypertrophy" | "hybrid" | "minimal";
 type BottleneckId = "overload" | "consistency" | "plateau" | "accountability";
 type CoachingIntent = "ready" | "curious" | "blueprint";
 type StepNum = 1 | 2 | 3 | 4 | 5;
+type BotDispatchState = "waiting" | "processing" | "dispatched";
 
 const ACCENTS: Record<
   AccentKey,
@@ -236,13 +238,53 @@ export function StandaloneDemo() {
   const [whatsapp, setWhatsapp] = useState<string>("");
   const [intent, setIntent] = useState<CoachingIntent>("ready");
   const [formError, setFormError] = useState<string>("");
+
+  // Backend -> WhatsApp Bot dispatch state
+  const [botState, setBotState] = useState<BotDispatchState>("waiting");
+  const [unreadBotAlert, setUnreadBotAlert] = useState<boolean>(false);
+  const [showBotBanner, setShowBotBanner] = useState<boolean>(false);
   const [copiedBrief, setCopiedBrief] = useState<boolean>(false);
-  const [replySent, setReplySent] = useState<boolean>(false);
+  const [showOutreachPreview, setShowOutreachPreview] =
+    useState<boolean>(false);
 
   const stepStageRef = useRef<HTMLDivElement>(null);
   const viewStageRef = useRef<HTMLDivElement>(null);
+  const timersRef = useRef<number[]>([]);
 
   const accent = ACCENTS[accentKey];
+
+  const clearTimers = () => {
+    for (const id of timersRef.current) {
+      window.clearTimeout(id);
+    }
+    timersRef.current = [];
+  };
+
+  useEffect(() => {
+    return () => clearTimers();
+  }, []);
+
+  // Trigger the Backend -> WhatsApp Bot -> PT pipeline simulation
+  const triggerBackendBotDispatch = () => {
+    clearTimers();
+    setBotState("processing");
+    setShowBotBanner(false);
+
+    const t1 = window.setTimeout(() => {
+      setBotState("dispatched");
+      playWhatsAppPing();
+      if (viewMode === "funnel") {
+        setUnreadBotAlert(true);
+        setShowBotBanner(true);
+      }
+    }, 550);
+
+    const t2 = window.setTimeout(() => {
+      setShowBotBanner(false);
+    }, 6500);
+
+    timersRef.current.push(t1, t2);
+  };
 
   // Silky GSAP staggered cascade when changing steps
   useEffect(() => {
@@ -276,13 +318,22 @@ export function StandaloneDemo() {
     gsap.fromTo(
       el,
       { opacity: 0, y: 10 },
-      { opacity: 1, y: 0, duration: 0.42, ease: "expo.out", clearProps: "transform" }
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.42,
+        ease: "expo.out",
+        clearProps: "transform",
+      }
     );
   }, [viewMode]);
 
   const goToStep = (next: StepNum) => {
     setFormError("");
     setStep(next);
+    if (next === 5 && botState === "waiting") {
+      triggerBackendBotDispatch();
+    }
   };
 
   const selectedGoal = useMemo(
@@ -435,30 +486,34 @@ export function StandaloneDemo() {
         return;
       }
       setFormError("");
-      goToStep(5);
+      setStep(5);
+      triggerBackendBotDispatch();
     }
   };
 
-  const whatsappPayload = `Hi! I just completed the 12-Week Training & Nutrition Diagnostic.
+  const clientDisplayName = firstName.trim() || "Jordan";
+  const clientDisplayPhone = whatsapp.trim() || "+44 7700 900077";
 
-*Client Profile:*
-• Name: ${firstName.trim() || "Alex"}
-• Baseline: ${age}y ${sex === "male" ? "Male" : "Female"} · ${formatHeight(heightCm)} · ${formatWeight(weightKg)} → Goal: ${formatWeight(targetWeightKg)}
-• Phase: ${selectedGoal.title} (~${metrics.estWeeks} weeks)
+  const botMessageToPT = `⚡ *NEW QUALIFIED PT LEAD — ${selectedIntent.tag}*
 
-*Training Plan:*
-• Split: ${metrics.splitName} (${trainingDays}x/wk)
-• Setup: ${selectedStyle.title}
-• Primary Focus: ${selectedBottleneck.title}
+*Client Details:*
+• Name: ${clientDisplayName}
+• WhatsApp: ${clientDisplayPhone}
+• Intent: ${selectedIntent.title}
 
-*Calculated Nutrition:*
+*Physique & Training Profile:*
+• Stats: ${age}y ${sex === "male" ? "Male" : "Female"} · ${formatHeight(heightCm)} · ${formatWeight(weightKg)} → ${formatWeight(targetWeightKg)}
+• Phase: ${selectedGoal.title} (~${metrics.estWeeks} wks)
+• Split: ${metrics.splitName} (${selectedStyle.title})
+• #1 Bottleneck: ${selectedBottleneck.title}
+
+*Blueprint Generated for Client:*
 • Daily Avg: ${metrics.targetCalories.toLocaleString()} kcal (${metrics.proteinG}g P / ${metrics.carbsG}g C / ${metrics.fatG}g F)
-• Training Days: ${metrics.trainingDayCalories.toLocaleString()} kcal | Rest Days: ${metrics.restDayCalories.toLocaleString()} kcal
-• 1:1 Coaching Status: ${selectedIntent.title}`;
+• Lift Days: ${metrics.trainingDayCalories.toLocaleString()} kcal | Rest Days: ${metrics.restDayCalories.toLocaleString()} kcal`;
 
   const handleCopyBrief = () => {
     if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(whatsappPayload);
+      navigator.clipboard.writeText(botMessageToPT);
       setCopiedBrief(true);
       setTimeout(() => setCopiedBrief(false), 2000);
     }
@@ -983,7 +1038,7 @@ export function StandaloneDemo() {
                 </div>
               </div>
 
-              {/* Coaching Bottleneck (2x2 Grid so Step 3 matches Step 1 & 2 height) */}
+              {/* Coaching Bottleneck (2x2 Grid) */}
               <div className="gsap-step-item">
                 <label className="block text-[11px] font-semibold uppercase tracking-wider text-zinc-400 mb-2">
                   Primary Focus for 1:1 Coaching
@@ -1194,32 +1249,30 @@ export function StandaloneDemo() {
 
           {/* STEP 5: UNLOCKED DATA-BACKED PT BLUEPRINT */}
           {step === 5 && (
-            <div className="space-y-4">
-              <div className="gsap-step-item flex items-center justify-between gap-2">
-                <div>
-                  <span
-                    className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-colors duration-500"
-                    style={{ color: accent.text }}
-                  >
-                    Custom 12-Week Blueprint · {firstName.trim() || "Client"}
+            <div className="space-y-3.5">
+              {/* Automated Backend Dispatch Confirmation Pill */}
+              <div className="gsap-step-item rounded-2xl bg-[#25D366]/10 border border-[#25D366]/30 px-3.5 py-2.5 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse shrink-0" />
+                  <span className="text-[11px] sm:text-xs font-semibold text-zinc-200 truncate">
+                    {botState === "processing"
+                      ? "Syncing your blueprint to your coach's WhatsApp..."
+                      : `Sent to coach via WhatsApp Bot · They'll message ${clientDisplayName} shortly`}
                   </span>
-                  <h2 className="text-base sm:text-xl font-bold text-white mt-0.5">
-                    {selectedGoal.title}
-                  </h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => goToStep(1)}
-                  className="text-xs font-semibold text-zinc-400 hover:text-white px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] transition-colors cursor-pointer shrink-0"
+                  className="text-[11px] font-semibold text-zinc-400 hover:text-white underline underline-offset-2 cursor-pointer shrink-0"
                 >
-                  Recalculate
+                  Edit
                 </button>
               </div>
 
               {/* Calorie Cycling & Goal Projection */}
               <div className="gsap-step-item grid grid-cols-3 gap-2">
                 <div
-                  className="p-3 sm:p-3.5 rounded-2xl border bg-[#0B0D11] transition-colors duration-500"
+                  className="p-3 rounded-2xl border bg-[#0B0D11] transition-colors duration-500"
                   style={{ borderColor: accent.border }}
                 >
                   <div className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
@@ -1236,7 +1289,7 @@ export function StandaloneDemo() {
                   </div>
                 </div>
 
-                <div className="p-3 sm:p-3.5 rounded-2xl bg-[#0B0D11] border border-white/[0.07]">
+                <div className="p-3 rounded-2xl bg-[#0B0D11] border border-white/[0.07]">
                   <div className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
                     Lift Days ({trainingDays}x)
                   </div>
@@ -1248,7 +1301,7 @@ export function StandaloneDemo() {
                   </div>
                 </div>
 
-                <div className="p-3 sm:p-3.5 rounded-2xl bg-[#0B0D11] border border-white/[0.07]">
+                <div className="p-3 rounded-2xl bg-[#0B0D11] border border-white/[0.07]">
                   <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-zinc-400">
                     Rest Days ({7 - trainingDays}x)
                   </div>
@@ -1262,7 +1315,7 @@ export function StandaloneDemo() {
               </div>
 
               {/* Macro Split Ratio Bar + 3 Columns */}
-              <div className="gsap-step-item p-3.5 rounded-2xl bg-[#0B0D11] border border-white/[0.07] space-y-3">
+              <div className="gsap-step-item p-3.5 rounded-2xl bg-[#0B0D11] border border-white/[0.07] space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-white">
                     Daily Macro Allocation
@@ -1382,15 +1435,19 @@ export function StandaloneDemo() {
               }}
               className="px-5 py-3 rounded-xl text-black font-bold text-xs sm:text-sm tracking-tight hover:brightness-105 active:scale-[0.99] transition-all duration-300 cursor-pointer ml-auto"
             >
-              {step === 4 ? "Unlock Full 12-Week Blueprint →" : "Continue →"}
+              {step === 4 ? "Submit & Unlock Blueprint →" : "Continue →"}
             </button>
           ) : (
             <button
               type="button"
-              onClick={() => setViewMode("whatsapp")}
-              className="px-5 py-3 rounded-xl bg-[#25D366] hover:bg-[#2be06f] active:scale-[0.99] text-black font-bold text-xs sm:text-sm flex items-center gap-2 shadow-[0_10px_28px_rgba(37,211,102,0.28)] transition-all cursor-pointer ml-auto"
+              onClick={() => {
+                setUnreadBotAlert(false);
+                setShowBotBanner(false);
+                setViewMode("whatsapp");
+              }}
+              className="px-4 sm:px-5 py-3 rounded-xl bg-[#25D366] hover:bg-[#2be06f] active:scale-[0.99] text-black font-bold text-xs sm:text-sm flex items-center gap-2 shadow-[0_10px_28px_rgba(37,211,102,0.28)] transition-all cursor-pointer ml-auto"
             >
-              <span>Send Blueprint on WhatsApp</span>
+              <span>View What the PT Receives on WhatsApp</span>
               <span>→</span>
             </button>
           )}
@@ -1399,27 +1456,50 @@ export function StandaloneDemo() {
     </div>
   );
 
-  // Render the Coach WhatsApp Lead Cockpit View
+  // Render the Automated Backend -> WhatsApp Bot -> PT View
   const renderWhatsAppDemo = () => (
-    <div className="w-full max-w-[500px] mx-auto">
+    <div className="w-full max-w-[520px] mx-auto space-y-3">
+      {/* Backend -> WhatsApp Bot Telemetry Pipeline Strip */}
+      <div className="rounded-2xl bg-[#11151C] border border-white/[0.08] p-3.5 flex items-center justify-between gap-2 text-[11px]">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#25D366]" />
+          <span className="font-semibold text-zinc-200">
+            1. Client Submits Funnel
+          </span>
+        </div>
+        <span className="text-zinc-600">→</span>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#25D366]" />
+          <span className="font-semibold text-zinc-200">
+            2. Backend Scores Lead
+          </span>
+        </div>
+        <span className="text-zinc-600">→</span>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
+          <span className="font-bold text-[#25D366]">3. Bot Alerts PT</span>
+        </div>
+      </div>
+
+      {/* PT's Phone — Chat with Qualfi WhatsApp Lead Bot */}
       <div className="rounded-3xl bg-[#0F171A] border border-white/10 overflow-hidden shadow-[0_24px_70px_rgba(0,0,0,0.65)]">
-        {/* Coach Lead Intelligence Header */}
+        {/* WhatsApp Bot Header */}
         <div className="bg-[#182329] px-4 sm:px-5 py-4 border-b border-white/[0.08] flex items-center justify-between gap-2">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-[#25D366] text-black font-extrabold text-sm flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(37,211,102,0.35)]">
-              {(firstName.trim()?.[0] || "A").toUpperCase()}
+            <div className="w-10 h-10 rounded-full bg-[#25D366] text-black font-black text-xs flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(37,211,102,0.35)]">
+              BOT
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-sm font-bold text-white truncate">
-                  {firstName.trim() || "Alex"} · Bio-Link Lead
+                  Qualfi WhatsApp Bot
                 </span>
                 <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#25D366]/20 text-[#25D366]">
-                  {selectedIntent.tag}
+                  OFFICIAL BOT ✓
                 </span>
               </div>
               <div className="text-[11px] text-zinc-400 mt-0.5 truncate">
-                {whatsapp.trim() || "+44 7700 900077"} · Verified via Funnel
+                Automated Backend Lead Dispatch → PT’s Phone
               </div>
             </div>
           </div>
@@ -1429,74 +1509,61 @@ export function StandaloneDemo() {
             onClick={handleCopyBrief}
             className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-white/[0.07] hover:bg-white/[0.12] text-zinc-200 transition-colors cursor-pointer shrink-0"
           >
-            {copiedBrief ? "✓ Copied" : "Copy Brief"}
+            {copiedBrief ? "✓ Copied" : "Copy Dossier"}
           </button>
         </div>
 
-        {/* Structured Lead Telemetry Bar for the PT */}
-        <div className="grid grid-cols-3 gap-2 p-3 sm:p-3.5 bg-[#121B20] border-b border-white/[0.06] text-center">
-          <div className="p-2 rounded-xl bg-black/30">
-            <div className="text-[9px] sm:text-[10px] uppercase text-zinc-400">
-              Goal
-            </div>
-            <div className="text-xs font-bold text-white truncate mt-0.5">
-              {selectedGoal.title.split(" ")[0]}{" "}
-              {selectedGoal.title.split(" ")[1]}
-            </div>
-          </div>
-          <div className="p-2 rounded-xl bg-black/30">
-            <div className="text-[9px] sm:text-[10px] uppercase text-zinc-400">
-              Split
-            </div>
-            <div className="text-xs font-bold text-white mt-0.5">
-              {trainingDays} Days / Wk
-            </div>
-          </div>
-          <div className="p-2 rounded-xl bg-black/30">
-            <div className="text-[9px] sm:text-[10px] uppercase text-zinc-400">
-              Target
-            </div>
-            <div className="text-xs font-bold text-[#25D366] tabular-nums mt-0.5">
-              {metrics.targetCalories.toLocaleString()} kcal
-            </div>
-          </div>
-        </div>
-
         {/* WhatsApp Message Thread */}
-        <div className="p-4 sm:p-5 space-y-4 bg-[#0B1215]">
+        <div className="p-4 sm:p-5 space-y-3.5 bg-[#0B1215]">
           <div className="text-center">
             <span className="inline-block px-3 py-1 rounded-full bg-white/[0.05] text-[10px] sm:text-[11px] text-zinc-400">
-              Auto-populated when client taps &ldquo;Send Blueprint&rdquo;
+              Triggered automatically via backend when client submits Step 04
             </span>
           </div>
 
-          {/* Incoming Client Message Bubble */}
-          <div className="rounded-2xl rounded-tl-sm bg-[#1B272E] border border-white/[0.07] p-3.5 sm:p-4 text-xs sm:text-[13px] text-zinc-100 whitespace-pre-line leading-relaxed shadow-md">
-            {whatsappPayload}
-            <div className="text-[10px] text-zinc-400 text-right mt-2">
-              Just now · Delivered
+          {/* Incoming Bot Alert Bubble to the PT */}
+          <div className="rounded-2xl rounded-tl-sm bg-[#1B272E] border border-white/[0.08] p-4 text-xs sm:text-[13px] text-zinc-100 whitespace-pre-line leading-relaxed shadow-md">
+            {botMessageToPT}
+            <div className="flex items-center justify-between text-[10px] text-zinc-400 mt-3 pt-2 border-t border-white/[0.06]">
+              <span>Dispatched via Qualfi API</span>
+              <span className="text-[#25D366] font-semibold">
+                Delivered in 0.6s ✓✓
+              </span>
             </div>
           </div>
 
-          {/* Example 1-Tap Coach Reply */}
-          <div className="rounded-2xl rounded-tr-sm bg-[#005C4B] p-3.5 sm:p-4 text-xs sm:text-[13px] text-white leading-relaxed ml-4 sm:ml-8 shadow-md">
-            Hey {firstName.trim() || "Alex"}! Just reviewed your{" "}
-            {metrics.targetCalories.toLocaleString()} kcal blueprint and{" "}
-            {trainingDays}-day split. Since your main focus is{" "}
-            {selectedBottleneck.title.toLowerCase()}, I have 2 spots open this
-            week to build your full 12-week program—are you free for a quick
-            10-min chat today?
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10 text-[10px] text-emerald-200/80">
-              <span>Suggested 1-Tap PT Reply</span>
-              <button
-                type="button"
-                onClick={() => setReplySent((prev) => !prev)}
-                className="font-bold underline underline-offset-2 cursor-pointer"
-              >
-                {replySent ? "Sent ✓✓" : "Simulate Send →"}
-              </button>
-            </div>
+          {/* Interactive WhatsApp Cloud API Bot Action Buttons for the PT */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setShowOutreachPreview((prev) => !prev)}
+              className="py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#2be06f] text-black font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
+            >
+              <span>💬 Tap to Message {clientDisplayName}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleCopyBrief}
+              className="py-3 px-4 rounded-xl bg-[#1B272E] hover:bg-[#24333C] border border-white/[0.08] text-zinc-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            >
+              <span>{copiedBrief ? "✓ Dossier Copied" : "📋 Copy Lead Brief"}</span>
+            </button>
           </div>
+
+          {/* Optional Preview of the 1-Tap Pre-Filled Message when PT taps "Message Client" */}
+          {showOutreachPreview && (
+            <div className="rounded-2xl bg-[#005C4B] p-3.5 text-xs text-white leading-relaxed border border-emerald-400/20">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-200 mb-1">
+                Pre-filled on PT’s phone when tapping &ldquo;Message{" "}
+                {clientDisplayName}&rdquo;:
+              </div>
+              “Hey {clientDisplayName}! Just got your{" "}
+              {metrics.targetCalories.toLocaleString()} kcal blueprint &{" "}
+              {trainingDays}-day split from my assessment tool. Saw your main
+              focus is {selectedBottleneck.title.toLowerCase()}—are you free for
+              a quick 10-min chat today to map out your 12-week plan?”
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1541,6 +1608,36 @@ export function StandaloneDemo() {
         }
       `}</style>
 
+      {/* Live Slide-Down Bot Dispatch Notification Toast (when submitting Step 4 in Funnel View) */}
+      {showBotBanner && viewMode === "funnel" && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md rounded-2xl bg-[#142026]/95 border border-[#25D366]/50 p-3.5 shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-xl flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-[#25D366] text-black font-black text-[11px] flex items-center justify-center shrink-0">
+              BOT
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-bold text-white truncate">
+                WhatsApp Bot Dispatched to PT ✓
+              </div>
+              <div className="text-[11px] text-zinc-300 truncate">
+                {clientDisplayName}’s lead dossier just landed on the PT’s phone
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setShowBotBanner(false);
+              setUnreadBotAlert(false);
+              setViewMode("whatsapp");
+            }}
+            className="px-3 py-1.5 rounded-xl bg-[#25D366] text-black font-bold text-xs shrink-0 cursor-pointer"
+          >
+            View Bot →
+          </button>
+        </div>
+      )}
+
       {/* TOP DEMO SWITCHER BAR — Optimized for Mobile & Desktop */}
       <div className="sticky top-0 z-40 border-b border-white/[0.08] bg-[#0B0D12]/90 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
@@ -1555,23 +1652,42 @@ export function StandaloneDemo() {
                   : "text-zinc-400 hover:text-white"
               }`}
             >
-              PT Funnel Demo
+              1. Client Funnel
             </button>
             <button
               type="button"
-              onClick={() => setViewMode("whatsapp")}
-              className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer ${
+              onClick={() => {
+                setUnreadBotAlert(false);
+                setShowBotBanner(false);
+                setViewMode("whatsapp");
+              }}
+              className={`px-3 py-2 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all duration-300 cursor-pointer relative ${
                 viewMode === "whatsapp"
                   ? "bg-[#25D366] text-black shadow-sm"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-current" />
-              WhatsApp Demo
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  unreadBotAlert
+                    ? "bg-[#25D366] animate-ping"
+                    : "bg-current"
+                }`}
+              />
+              <span>2. PT WhatsApp Bot</span>
+              {unreadBotAlert && viewMode !== "whatsapp" && (
+                <span className="ml-0.5 px-1.5 py-0.2 rounded-full bg-[#25D366] text-black text-[9px] font-black">
+                  NEW
+                </span>
+              )}
             </button>
             <button
               type="button"
-              onClick={() => setViewMode("split")}
+              onClick={() => {
+                setUnreadBotAlert(false);
+                setShowBotBanner(false);
+                setViewMode("split");
+              }}
               className={`hidden md:inline-flex px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 cursor-pointer ${
                 viewMode === "split"
                   ? "bg-white text-black shadow-sm"
@@ -1611,7 +1727,7 @@ export function StandaloneDemo() {
               }}
               className="text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] active:scale-[0.98] text-zinc-200 transition-all cursor-pointer"
             >
-              {step === 5 ? "Reset to Step 1" : "Preview Unlocked Plan"}
+              {step === 5 ? "Reset to Step 1" : "Simulate Submit"}
             </button>
           </div>
         </div>
