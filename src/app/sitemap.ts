@@ -1,28 +1,27 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/constants";
+
+const LAST_MODIFIED = new Date("2026-10-29");
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://qualfi.co.uk";
-  const lastModified = new Date("2026-10-29");
-
   return [
     {
-      url: siteUrl,
-      lastModified,
+      url: SITE_URL,
+      lastModified: LAST_MODIFIED,
       changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: `${siteUrl}/privacy`,
-      lastModified,
+      url: `${SITE_URL}/privacy`,
+      lastModified: LAST_MODIFIED,
       changeFrequency: "monthly",
       priority: 0.4,
     },
     {
-      url: `${siteUrl}/terms`,
-      lastModified,
+      url: `${SITE_URL}/terms`,
+      lastModified: LAST_MODIFIED,
       changeFrequency: "monthly",
       priority: 0.4,
     },
   ];
 }
-

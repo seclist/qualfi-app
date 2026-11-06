@@ -1,6 +1,8 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { SITE_URL, THEME_STORAGE_KEY } from "@/lib/constants";
+import { WabiSabiGrain } from "@/lib/wabi-motion";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,10 +22,8 @@ const instrument = Instrument_Serif({
   style: ["normal", "italic"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://qualfi.co.uk";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Qualfi — Interactive Micro Tools That Turn Followers Into Qualified Clients",
     template: "%s | Qualfi",
@@ -75,27 +75,12 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#04070d" },
+    { media: "(prefers-color-scheme: light)", color: "#f4efe6" },
+    { media: "(prefers-color-scheme: dark)", color: "#12110f" },
   ],
 };
 
-const themeScript = `
-(function() {
-  try {
-    var stored = localStorage.getItem('qualfi-theme');
-    if (stored === 'light') {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.setAttribute('data-theme', 'light');
-      document.documentElement.style.colorScheme = 'light';
-    } else {
-      document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
-      document.documentElement.style.colorScheme = 'dark';
-    }
-  } catch (e) {}
-})();
-`;
+const themeScript = `(function(){try{var t=localStorage.getItem('${THEME_STORAGE_KEY}')==='light'?'light':'dark',d=document.documentElement;d.classList.toggle('dark',t==='dark');d.setAttribute('data-theme',t);d.style.colorScheme=t}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -112,7 +97,8 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-full bg-bg text-fg transition-colors duration-200">
+      <body className="min-h-full bg-bg text-fg transition-colors duration-300">
+        <WabiSabiGrain />
         {children}
         <Analytics />
       </body>

@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import Loading from "@/app/loading";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { StandaloneDemo } from "@/components/StandaloneDemo";
 
 export const metadata: Metadata = {
@@ -12,6 +15,11 @@ export const metadata: Metadata = {
 };
 
 export default function DemoPage() {
-  return <StandaloneDemo />;
+  return (
+    <ErrorBoundary fallbackTitle="Standalone bio-link demo encountered an error">
+      <Suspense fallback={<Loading />}>
+        <StandaloneDemo />
+      </Suspense>
+    </ErrorBoundary>
+  );
 }
-

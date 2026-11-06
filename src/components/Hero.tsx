@@ -1,10 +1,8 @@
 "use client";
 
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect, useRef } from "react";
+import { gsap } from "@/lib/gsap";
 import { CountUp } from "./CountUp";
-import { PhoneMockup } from "./PhoneMockup";
 import {
   IconArrowRight,
   IconBolt,
@@ -13,8 +11,7 @@ import {
   IconSparkle,
   IconWhatsApp,
 } from "./icons";
-
-gsap.registerPlugin(ScrollTrigger);
+import { PhoneMockup } from "./PhoneMockup";
 
 const PIPELINE_NODES = [
   {
@@ -23,6 +20,7 @@ const PIPELINE_NODES = [
     metric: "0.3s Load",
     detail: "Follower taps your Instagram or TikTok bio link — opens natively with zero lag.",
     icon: IconInstagram,
+    offsetClass: "lg:translate-y-0",
   },
   {
     step: "02",
@@ -30,6 +28,7 @@ const PIPELINE_NODES = [
     metric: "9.4% Opt-In",
     detail: "They answer 4 quick taps to unlock their custom calories, macros & training split.",
     icon: IconSparkle,
+    offsetClass: "lg:translate-y-2.5",
   },
   {
     step: "03",
@@ -37,6 +36,7 @@ const PIPELINE_NODES = [
     metric: "0–100 Grade",
     detail: "Engine scores their urgency, training commitment & coaching readiness automatically.",
     icon: IconFilter,
+    offsetClass: "lg:-translate-y-1",
   },
   {
     step: "04",
@@ -44,8 +44,9 @@ const PIPELINE_NODES = [
     metric: "< 1.8s Push",
     detail: "Hot buyers hit your phone immediately while they are still looking at their results.",
     icon: IconWhatsApp,
+    offsetClass: "lg:translate-y-2",
   },
-];
+] as const;
 
 const BENCHMARKS = [
   {
@@ -72,7 +73,7 @@ const BENCHMARKS = [
     label: "Pre-qualified by goal urgency & availability",
     tag: "ZERO TYRE-KICKERS",
   },
-];
+] as const;
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -80,34 +81,35 @@ export function Hero() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      /* Rule 1 & Rule 6: Apply ease-out for all entrances; stagger items as details settle */
       gsap.fromTo(
         ".gsap-hero-item",
-        { y: 28, opacity: 0 },
+        { y: 24, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 0.9,
-          stagger: 0.1,
+          duration: 0.72,
+          stagger: 0.045,
           ease: "power3.out",
-          delay: 0.08,
-        },
+          delay: 0.06,
+        }
       );
 
       if (pipelineRef.current) {
         gsap.fromTo(
           ".gsap-pipeline-card",
-          { y: 32, opacity: 0 },
+          { y: 26, opacity: 0 },
           {
             y: 0,
             opacity: 1,
-            duration: 0.8,
-            stagger: 0.12,
+            duration: 0.68,
+            stagger: 0.045,
             ease: "power3.out",
             scrollTrigger: {
               trigger: pipelineRef.current,
               start: "top 84%",
             },
-          },
+          }
         );
       }
     }, sectionRef);
@@ -121,24 +123,25 @@ export function Hero() {
       id="top"
       className="relative overflow-hidden pb-14 pt-24 sm:pb-20 sm:pt-28 md:pb-28 md:pt-36"
     >
-      {/* Layered atmospheric backdrop */}
+      {/* Layered atmospheric Wabi Sabi backdrop */}
       <div className="hero-glow pointer-events-none absolute inset-0" />
       <div className="grid-bg pointer-events-none absolute inset-0" />
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-        {/* ───────────── Top Architectural Split ───────────── */}
+        {/* ───────────── Top Architectural Asymmetric Split (Fukinsei) ───────────── */}
         <div className="grid items-center gap-10 sm:gap-16 lg:grid-cols-12 lg:gap-8">
           {/* Left 7 Columns: Editorial Typography & CTAs */}
           <div className="text-center lg:col-span-7 lg:text-left">
             <div className="gsap-hero-item inline-flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 lg:justify-start">
               <span className="hidden font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-brand-cyan sm:inline">
-                01 / THE SHIFT
+                01 / THE SHIFT · WABI SABI EDITION
               </span>
               <span className="hidden h-3.5 w-px bg-line-strong sm:inline-block" />
               <a
                 id="hero-offer-badge"
                 href="#claim"
-                className="group inline-flex items-center gap-2 rounded-full border border-brand-cyan/30 bg-brand-cyan/10 py-1.5 pl-3 pr-3.5 text-[11.5px] sm:py-1 sm:pl-2.5 sm:pr-3 sm:text-xs font-medium text-fg backdrop-blur transition hover:border-brand-cyan/60 hover:bg-brand-cyan/15"
+                /* Rule 4: Scale interactive elements to 0.97 on press */
+                className="group inline-flex items-center gap-2 rounded-full border border-brand-cyan/30 bg-brand-cyan/10 py-1.5 pl-3 pr-3.5 text-[11.5px] sm:py-1 sm:pl-2.5 sm:pr-3 sm:text-xs font-medium text-fg backdrop-blur transition hover:border-brand-cyan/60 hover:bg-brand-cyan/15 active:scale-[0.97]"
               >
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping-soft absolute inline-flex h-full w-full rounded-full bg-brand-cyan" />
@@ -150,7 +153,7 @@ export function Hero() {
               </a>
             </div>
 
-            <h1 className="mt-5 sm:mt-6 text-[38px] font-semibold leading-[1.03] sm:leading-[1.01] tracking-[-0.04em] sm:tracking-[-0.045em] sm:text-[64px] lg:text-[76px]">
+            <h1 className="mt-5 sm:mt-6 text-[38px] font-semibold leading-[1.03] sm:leading-[1.01] tracking-[-0.04em] sm:tracking-[-0.045em] sm:text-[64px] lg:text-[74px]">
               <span className="block overflow-hidden pb-1">
                 <span className="animate-line-up block text-fade">
                   Turn bio scrollers into
@@ -178,22 +181,24 @@ export function Hero() {
               <a
                 id="hero-cta-demo"
                 href="#demo"
-                className="btn-primary group inline-flex w-full sm:w-auto items-center justify-center gap-3 rounded-full py-3.5 pl-7 pr-4 text-[15px] font-semibold active:scale-[0.98]"
+                /* Rule 4: Scale interactive elements to 0.97 on press */
+                className="btn-primary group inline-flex w-full sm:w-auto items-center justify-center gap-3 rounded-full py-3.5 pl-7 pr-4 text-[15px] font-semibold active:scale-[0.97]"
               >
                 <span>Test the live demo</span>
-                <span className="relative grid h-7 w-7 place-items-center overflow-hidden rounded-full bg-black/15 dark:bg-[#02131a]/20 transition-transform duration-300 group-hover:scale-105">
-                  <IconArrowRight className="h-3.5 w-3.5 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-5 group-hover:opacity-0" />
-                  <IconArrowRight className="absolute h-3.5 w-3.5 -translate-x-5 opacity-0 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-hover:opacity-100" />
+                <span className="relative grid h-7 w-7 place-items-center overflow-hidden rounded-full bg-black/15 dark:bg-black/25 transition-transform duration-200 group-hover:scale-105">
+                  <IconArrowRight className="h-3.5 w-3.5 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-5 group-hover:opacity-0" />
+                  <IconArrowRight className="absolute h-3.5 w-3.5 -translate-x-5 opacity-0 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-0 group-hover:opacity-100" />
                 </span>
               </a>
 
               <a
                 id="hero-cta-apply"
                 href="#claim"
-                className="btn-ghost group inline-flex w-full sm:w-auto items-center justify-center gap-2.5 rounded-full px-6 py-3.5 sm:py-4 text-[15px] font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-cyan/50 hover:shadow-[0_12px_30px_-12px_var(--brand-cyan-glow)] active:scale-[0.98]"
+                /* Rule 4: Scale interactive elements to 0.97 on press */
+                className="btn-ghost group inline-flex w-full sm:w-auto items-center justify-center gap-2.5 rounded-full px-6 py-3.5 sm:py-4 text-[15px] font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-cyan/50 hover:shadow-[0_12px_30px_-12px_var(--brand-cyan-glow)] active:scale-[0.97]"
               >
                 <span>Unlock £99 Early Access</span>
-                <IconArrowRight className="h-3.5 w-3.5 text-brand-cyan transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1" />
+                <IconArrowRight className="h-3.5 w-3.5 text-brand-cyan transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-x-1" />
               </a>
             </div>
 
@@ -223,8 +228,8 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Right 5 Columns: Interactive 3D OLED Device */}
-          <div className="gsap-hero-item relative lg:col-span-5">
+          {/* Right 5 Columns: Interactive 3D Wabi Sabi Device */}
+          <div className="gsap-hero-item relative lg:col-span-5 lg:translate-y-2">
             <PhoneMockup />
           </div>
         </div>
@@ -249,16 +254,16 @@ export function Hero() {
               </div>
             </div>
             <span className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-surface-2/80 px-3 py-1 font-mono text-[10px] sm:text-[11px] font-semibold text-muted">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-whatsapp animate-pulse" />
               STANDALONE BIO LINK OR WEBSITE EMBED
             </span>
           </div>
 
-          {/* 4-Stage Pipeline Grid with Traveling Light Packet */}
+          {/* 4-Stage Pipeline Grid with Parabolic Arc Signal Packet (Rule 7) */}
           <div className="relative z-10 mt-5 sm:mt-8">
             {/* Desktop Horizontal Signal Track */}
             <div className="pointer-events-none absolute left-[8%] right-[8%] top-7 hidden h-px bg-line-strong lg:block">
-              <span className="animate-travel-x absolute -top-[3px] h-2 w-16 rounded-full bg-linear-to-r from-transparent via-brand-cyan to-white shadow-[0_0_16px_var(--brand-cyan)]" />
+              <span className="animate-travel-x absolute top-0 h-2.5 w-16 rounded-full bg-linear-to-r from-transparent via-brand-cyan to-[#FAF6F0] shadow-[0_0_16px_var(--brand-cyan)]" />
             </div>
 
             <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -267,11 +272,11 @@ export function Hero() {
                 return (
                   <div
                     key={node.step}
-                    className="gsap-pipeline-card group relative rounded-2xl border border-line bg-surface/85 p-4 sm:p-5 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-brand-cyan/45 hover:shadow-xl"
+                    className={`gsap-pipeline-card group relative rounded-2xl border border-line bg-surface/85 p-4 sm:p-5 backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:border-brand-cyan/45 hover:shadow-xl ${node.offsetClass}`}
                   >
                     <div className="flex items-center justify-between">
                       <span
-                        className="animate-node grid h-9 w-9 place-items-center rounded-xl border border-brand-cyan/35 bg-surface-2 text-brand-cyan transition-colors group-hover:bg-brand-cyan group-hover:text-[#02131a]"
+                        className="animate-node grid h-9 w-9 place-items-center rounded-xl border border-brand-cyan/35 bg-surface-2 text-brand-cyan transition-colors group-hover:bg-brand-cyan group-hover:text-bg"
                         style={{ animationDelay: `${i * 0.9}s` }}
                       >
                         <Icon className="h-4 w-4" />
