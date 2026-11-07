@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" rx="7" fill="#121316"/>
+  <!-- Modern Geometric Q Monogram -->
+  <circle cx="15" cy="15" r="7.5" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <path d="M 19 19 L 23.5 23.5" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <!-- Signature qualfi terracotta brand dot -->
+  <circle cx="24" cy="13.5" r="2.3" fill="#d9532f"/>
+</svg>

@@ -1,0 +1,1011 @@
+"use client";
+
+import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AnimatePresence, motion } from "framer-motion";
+import { EASING, playSensoryFeedback, triggerMobileHaptic } from "@/lib/design-system";
+
+/**
+ * ============================================================================
+ * ZOD VALIDATION SCHEMA
+ * ============================================================================
+ */
+const enquirySchema = z.object({
+  specialty: z.enum(["fatloss", "strength", "hyrox", "busy_pros"]),
+  clientGoal: z.enum(["3to5", "5to10", "10plus"]),
+  bottleneck: z.enum(["linktree", "cold_dms", "dm_ready"]),
+  handle: z
+    .string()
+    .trim()
+    .min(2, "Enter at least 2 characters for your handle")
+    .max(30, "Handle must be under 30 characters")
+    .regex(/^[a-zA-Z0-9._]+$/, "Use letters, numbers, periods, or underscores"),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Enter your name (at least 2 characters)")
+    .max(60, "Name must be under 60 characters"),
+  whatsapp: z
+    .string()
+    .trim()
+    .min(7, "Enter a valid WhatsApp or mobile number")
+    .max(20, "Number is too long")
+    .regex(/^[+\d\s()-]{7,20}$/, "Enter a valid number (e.g. +44 7911 123456)"),
+});
+
+export type EnquiryFormValues = z.infer<typeof enquirySchema>;
+
+const STEP_QUESTIONS: readonly string[] = [
+  "What do you coach?",
+  "How many new clients do you want a month?",
+  "What is holding your bio link back?",
+  "Where should we send your custom preview?",
+];
+
+const SPECIALTIES = [
+  {
+    id: "fatloss" as const,
+    label: "Fat loss & body recomp",
+    note: "Drop body fat and keep lean muscle",
+  },
+  {
+    id: "strength" as const,
+    label: "Strength & muscle",
+    note: "Build size, power, and progressive lifts",
+  },
+  {
+    id: "hyrox" as const,
+    label: "Hyrox & hybrid performance",
+    note: "Engine, conditioning, and functional strength",
+  },
+  {
+    id: "busy_pros" as const,
+    label: "Busy professionals",
+    note: "Time-efficient workouts and sustainable habits",
+  },
+];
+
+const CLIENT_GOALS = [
+  {
+    id: "3to5" as const,
+    label: "3 to 5 new clients a month",
+    note: "High-touch 1-on-1 coaching",
+  },
+  {
+    id: "5to10" as const,
+    label: "5 to 10 new clients a month",
+    note: "Consistent weekly pipeline of buyers",
+  },
+  {
+    id: "10plus" as const,
+    label: "10+ new clients a month",
+    note: "Scaling online coaching roster",
+  },
+];
+
+const BOTTLENECKS = [
+  {
+    id: "linktree" as const,
+    label: "Dead Linktree or static form",
+    note: "Followers click my bio link but leave without applying",
+  },
+  {
+    id: "cold_dms" as const,
+    label: "Time-wasters in my DMs",
+    note: "Spending hours chatting to people who never buy",
+  },
+  {
+    id: "dm_ready" as const,
+    label: "Relying on 'DM me READY'",
+    note: "Missing warm followers who want instant value first",
+  },
+];
+
+const stepSlideVariants = {
+  enter: (dir: number) => ({
+    opacity: 0,
+    x: dir > 0 ? 24 : -24,
+    scale: 0.98,
+  }),
+  center: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: {
+      duration: 0.28,
+      ease: EASING.naturalOut,
+    },
+  },
+  exit: (dir: number) => ({
+    opacity: 0,
+    x: dir > 0 ? -24 : 24,
+    scale: 0.98,
+    transition: {
+      duration: 0.18,
+      ease: EASING.naturalInOut,
+    },
+  }),
+};
+
+export function GetYourFunnel({
+  sectionId = "funnel",
+  idPrefix = sectionId.startsWith("mobile") ? "m" : "d",
+}: {
+  sectionId?: string;
+  idPrefix?: string;
+} = {}) {
+  const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, dirtyFields },
+  } = useForm<EnquiryFormValues>({
+    resolver: zodResolver(enquirySchema),
+    mode: "onChange",
+    defaultValues: {
+      specialty: "fatloss",
+      clientGoal: "5to10",
+      bottleneck: "linktree",
+      handle: "",
+      name: "",
+      whatsapp: "",
+    },
+  });
+
+  const watchedValues = watch();
+  const cleanHandle = watchedValues.handle.replace(/^@+/, "").trim() || "yourname";
+
+  const selectedSpecialtyObj =
+    SPECIALTIES.find((s) => s.id === watchedValues.specialty) || SPECIALTIES[0];
+  const selectedGoalObj =
+    CLIENT_GOALS.find((g) => g.id === watchedValues.clientGoal) || CLIENT_GOALS[1];
+  const selectedBottleneckObj =
+    BOTTLENECKS.find((b) => b.id === watchedValues.bottleneck) || BOTTLENECKS[0];
+
+  const progressPercent =
+    step === 0 ? 25 : step === 1 ? 50 : step === 2 ? 75 : 100;
+
+  const goToStep = (target: 0 | 1 | 2 | 3 | 4) => {
+    setDirection(target > step ? 1 : -1);
+    setHoveredId(null);
+    setStep(target);
+  };
+
+  const pickSpecialty = (val: EnquiryFormValues["specialty"]) => {
+    playSensoryFeedback("tap");
+    triggerMobileHaptic("light");
+    setValue("specialty", val, { shouldValidate: true });
+    goToStep(1);
+  };
+
+  const pickClientGoal = (val: EnquiryFormValues["clientGoal"]) => {
+    playSensoryFeedback("tap");
+    triggerMobileHaptic("light");
+    setValue("clientGoal", val, { shouldValidate: true });
+    goToStep(2);
+  };
+
+  const pickBottleneck = (val: EnquiryFormValues["bottleneck"]) => {
+    playSensoryFeedback("tap");
+    triggerMobileHaptic("light");
+    setValue("bottleneck", val, { shouldValidate: true });
+    goToStep(3);
+  };
+
+  const onSubmit = () => {
+    playSensoryFeedback("success");
+    triggerMobileHaptic("success");
+    setIsCalculating(true);
+
+    setTimeout(() => {
+      setIsCalculating(false);
+      goToStep(4);
+    }, 550);
+  };
+
+  const isFieldValid = (fieldName: "handle" | "name" | "whatsapp") => {
+    const val = watchedValues[fieldName];
+    return Boolean(val && val.trim().length >= 2 && !errors[fieldName] && dirtyFields[fieldName]);
+  };
+
+  const whatsAppFastTrackHref = () => {
+    const phone = "447911123456";
+    const text = [
+      `Hey qualfi, I just requested my custom bio funnel!`,
+      ``,
+      `Bio Link: qualfi.com/@${cleanHandle}`,
+      `Coach: ${watchedValues.name}`,
+      `Coaching: ${selectedSpecialtyObj.label}`,
+      `Goal: ${selectedGoalObj.label}`,
+      `WhatsApp: ${watchedValues.whatsapp}`,
+    ].join("\n");
+    return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  };
+
+  return (
+    <section
+      id={sectionId}
+      className="relative overflow-hidden bg-[#faf7f2] px-4 py-20 sm:px-6 sm:py-28 scroll-mt-14 text-[#121316]"
+    >
+      {/* Legacy & mobile anchor aliases scoped to avoid duplicate DOM IDs */}
+      {sectionId === "funnel" ? (
+        <>
+          <div id="build" className="absolute -top-12 left-0 h-0 w-0 pointer-events-none" />
+          <div id="enquire" className="absolute -top-12 left-0 h-0 w-0 pointer-events-none" />
+        </>
+      ) : (
+        <>
+          <div id="mobile-build" className="absolute -top-12 left-0 h-0 w-0 pointer-events-none" />
+          <div id="mobile-enquire" className="absolute -top-12 left-0 h-0 w-0 pointer-events-none" />
+        </>
+      )}
+
+      {/* Warm Ambient Background Glow */}
+      <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(217,83,47,0.08),transparent_70%)] blur-3xl" />
+
+      {/* Single-Column Container */}
+      <div className="relative z-10 mx-auto max-w-lg">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.5, ease: EASING.naturalOut }}
+          className="text-left sm:text-center"
+        >
+          <span className="inline-block text-xs font-bold uppercase tracking-[0.22em] text-[#d9532f]">
+            Ready In 72 Hours
+          </span>
+
+          <h2 className="mt-3 font-serif text-4xl font-light tracking-tight text-[#121316] sm:text-5xl leading-[1.04]">
+            Get your custom <span className="italic font-normal text-[#d9532f]">bio funnel.</span>
+          </h2>
+
+          <p className="mt-3 text-sm sm:text-base text-[#52555f] leading-relaxed font-sans">
+            Tap through 4 quick steps below. We design, brand, and build your custom 60-second tool ready for your bio in 72 hours.
+          </p>
+        </motion.div>
+
+        {/* Main Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.55, delay: 0.08, ease: EASING.naturalOut }}
+          className="mt-8 rounded-3xl border border-stone-200/90 bg-white p-5 sm:p-8 shadow-[0_20px_50px_rgba(18,19,22,0.06)]"
+        >
+          {/* Card Header */}
+          <div className="mb-4 flex items-center justify-between border-b border-stone-200/80 pb-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-stone-200/90 shadow-xs bg-[#121316]">
+                <Image
+                  src="/logos/qualfi-monogram-dark.svg"
+                  alt="qualfi"
+                  width={36}
+                  height={36}
+                  className="h-full w-full object-cover"
+                  priority
+                />
+              </div>
+              <div className="text-xs leading-tight">
+                <div className="flex items-center gap-1">
+                  <b className="font-sans text-base font-black tracking-tight text-[#121316]">
+                    qualfi
+                  </b>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#d9532f]" />
+                </div>
+                <span className="text-[#52555f]">Custom Bio Funnel</span>
+              </div>
+            </div>
+
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#10b981]/15 px-2.5 py-1 text-[10px] font-bold text-[#047857]">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              </span>
+              LIVE IN 72H
+            </span>
+          </div>
+
+          {/* Interactive Segmented Progress Bar */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-[#52555f] mb-1.5">
+              <span>
+                {step < 4 ? `Step ${step + 1} of 4` : "Preview Locked"}
+              </span>
+              <motion.span
+                key={progressPercent}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="font-mono font-bold text-[#d9532f]"
+              >
+                {progressPercent}%
+              </motion.span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {[0, 1, 2, 3].map((i) => {
+                const isActiveOrDone = step >= i;
+                const canClickBack = i < step && step < 4;
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    disabled={!canClickBack}
+                    onClick={() => {
+                      if (canClickBack) {
+                        playSensoryFeedback("tap");
+                        goToStep(i as 0 | 1 | 2 | 3);
+                      }
+                    }}
+                    className={`h-1.5 flex-1 rounded-full bg-stone-200 overflow-hidden transition-opacity ${
+                      canClickBack ? "cursor-pointer hover:opacity-80" : "cursor-default"
+                    }`}
+                    aria-label={`Step ${i + 1}`}
+                  >
+                    <motion.span
+                      className="block h-full rounded-full bg-[#d9532f]"
+                      initial={false}
+                      animate={{ width: isActiveOrDone ? "100%" : "0%" }}
+                      transition={{ duration: 0.35, ease: EASING.naturalOut }}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <AnimatePresence mode="wait" custom={direction} initial={false}>
+              {/* Calculation Shimmer State */}
+              {isCalculating ? (
+                <motion.div
+                  key="calculating"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.22 }}
+                  className="py-12 flex flex-col items-center justify-center text-center space-y-4"
+                >
+                  <div className="h-12 w-12 rounded-full border-3 border-[#d9532f] border-t-transparent animate-spin" />
+                  <p className="font-serif text-xl italic text-[#121316]">
+                    Setting up qualfi.com/@{cleanHandle}…
+                  </p>
+                  <p className="text-xs text-[#52555f]">
+                    Preparing your 72-hour custom preview
+                  </p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={step}
+                  custom={direction}
+                  variants={stepSlideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                >
+                  {/* Step Question Title */}
+                  {step < 4 && (
+                    <h3 className="font-serif text-xl sm:text-2xl font-light text-[#121316] mb-4">
+                      {STEP_QUESTIONS[step]}
+                    </h3>
+                  )}
+
+                  {/* ======================================================== */}
+                  {/* STEP 0: WHAT DO YOU COACH?                               */}
+                  {/* ======================================================== */}
+                  {step === 0 && (
+                    <div
+                      className="flex flex-col gap-2.5"
+                      onMouseLeave={() => setHoveredId(null)}
+                    >
+                      {SPECIALTIES.map((item, idx) => {
+                        const isHovered = hoveredId === item.id;
+                        return (
+                          <motion.button
+                            key={item.id}
+                            type="button"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.22, delay: idx * 0.04, ease: EASING.naturalOut }}
+                            onHoverStart={() => {
+                              setHoveredId(item.id);
+                              playSensoryFeedback("tap");
+                            }}
+                            onHoverEnd={() => setHoveredId(null)}
+                            whileHover={{ scale: 1.015, y: -1 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => pickSpecialty(item.id)}
+                            className={`group relative flex min-h-[60px] w-full items-center justify-between gap-3 rounded-2xl border p-4 text-left shadow-xs transition-colors duration-150 ${
+                              isHovered
+                                ? "border-[#d9532f] bg-[#d9532f] text-white"
+                                : "border-stone-200/90 bg-white text-[#121316] hover:border-[#d9532f]"
+                            }`}
+                          >
+                            <div className="relative z-10 pr-2">
+                              <span
+                                className={`block font-serif text-base font-normal leading-tight transition-colors ${
+                                  isHovered ? "text-white" : "text-[#121316]"
+                                }`}
+                              >
+                                {item.label}
+                              </span>
+                              <span
+                                className={`mt-0.5 block text-xs leading-tight transition-colors ${
+                                  isHovered ? "text-white/85" : "text-[#52555f]"
+                                }`}
+                              >
+                                {item.note}
+                              </span>
+                            </div>
+
+                            <motion.span
+                              animate={{ x: isHovered ? 3 : 0 }}
+                              className={`relative z-10 text-sm font-bold transition-colors ${
+                                isHovered ? "text-white" : "text-[#d9532f]"
+                              }`}
+                            >
+                              →
+                            </motion.span>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* ======================================================== */}
+                  {/* STEP 1: MONTHLY CLIENT GOAL                              */}
+                  {/* ======================================================== */}
+                  {step === 1 && (
+                    <div className="space-y-4">
+                      <div
+                        className="flex flex-col gap-2.5"
+                        onMouseLeave={() => setHoveredId(null)}
+                      >
+                        {CLIENT_GOALS.map((goal, idx) => {
+                          const isHovered = hoveredId === goal.id;
+                          return (
+                            <motion.button
+                              key={goal.id}
+                              type="button"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.22, delay: idx * 0.04, ease: EASING.naturalOut }}
+                              onHoverStart={() => {
+                                setHoveredId(goal.id);
+                                playSensoryFeedback("tap");
+                              }}
+                              onHoverEnd={() => setHoveredId(null)}
+                              whileHover={{ scale: 1.015, y: -1 }}
+                              whileTap={{ scale: 0.97 }}
+                              onClick={() => pickClientGoal(goal.id)}
+                              className={`group relative flex min-h-[60px] w-full items-center justify-between gap-3 rounded-2xl border p-4 text-left shadow-xs transition-colors duration-150 ${
+                                isHovered
+                                  ? "border-[#d9532f] bg-[#d9532f] text-white"
+                                  : "border-stone-200/90 bg-white text-[#121316] hover:border-[#d9532f]"
+                              }`}
+                            >
+                              <div className="relative z-10 pr-2">
+                                <span
+                                  className={`block font-serif text-base font-normal leading-tight transition-colors ${
+                                    isHovered ? "text-white" : "text-[#121316]"
+                                  }`}
+                                >
+                                  {goal.label}
+                                </span>
+                                <span
+                                  className={`mt-0.5 block text-xs leading-tight transition-colors ${
+                                    isHovered ? "text-white/85" : "text-[#52555f]"
+                                  }`}
+                                >
+                                  {goal.note}
+                                </span>
+                              </div>
+
+                              <motion.span
+                                animate={{ x: isHovered ? 3 : 0 }}
+                                className={`relative z-10 text-sm font-bold transition-colors ${
+                                  isHovered ? "text-white" : "text-[#d9532f]"
+                                }`}
+                              >
+                                →
+                              </motion.span>
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playSensoryFeedback("tap");
+                            goToStep(0);
+                          }}
+                          className="flex min-h-[44px] items-center text-xs font-semibold text-[#52555f] hover:text-[#121316] py-1.5 px-2 transition-colors rounded-lg focus-visible:ring-2 focus-visible:ring-[#d9532f]"
+                          aria-label="Return to previous step"
+                        >
+                          ← Back
+                        </button>
+                        <span className="text-[11px] text-[#52555f]">Tap an option to continue</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ======================================================== */}
+                  {/* STEP 2: BIGGEST BOTTLENECK                               */}
+                  {/* ======================================================== */}
+                  {step === 2 && (
+                    <div className="space-y-4">
+                      <div
+                        className="flex flex-col gap-2.5"
+                        onMouseLeave={() => setHoveredId(null)}
+                      >
+                        {BOTTLENECKS.map((b, idx) => {
+                          const isHovered = hoveredId === b.id;
+                          return (
+                            <motion.button
+                              key={b.id}
+                              type="button"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.22, delay: idx * 0.04, ease: EASING.naturalOut }}
+                              onHoverStart={() => {
+                                setHoveredId(b.id);
+                                playSensoryFeedback("tap");
+                              }}
+                              onHoverEnd={() => setHoveredId(null)}
+                              whileHover={{ scale: 1.015, y: -1 }}
+                              whileTap={{ scale: 0.97 }}
+                              onClick={() => pickBottleneck(b.id)}
+                              className={`group relative flex min-h-[60px] w-full items-center justify-between gap-3 rounded-2xl border p-4 text-left shadow-xs transition-colors duration-150 ${
+                                isHovered
+                                  ? "border-[#d9532f] bg-[#d9532f] text-white"
+                                  : "border-stone-200/90 bg-white text-[#121316] hover:border-[#d9532f]"
+                              }`}
+                            >
+                              <div className="relative z-10 pr-2">
+                                <span
+                                  className={`block font-serif text-base font-normal leading-tight transition-colors ${
+                                    isHovered ? "text-white" : "text-[#121316]"
+                                  }`}
+                                >
+                                  {b.label}
+                                </span>
+                                <span
+                                  className={`mt-0.5 block text-xs leading-tight transition-colors ${
+                                    isHovered ? "text-white/85" : "text-[#52555f]"
+                                  }`}
+                                >
+                                  {b.note}
+                                </span>
+                              </div>
+
+                              <motion.span
+                                animate={{ x: isHovered ? 3 : 0 }}
+                                className={`relative z-10 text-sm font-bold transition-colors ${
+                                  isHovered ? "text-white" : "text-[#d9532f]"
+                                }`}
+                              >
+                                →
+                              </motion.span>
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playSensoryFeedback("tap");
+                            goToStep(1);
+                          }}
+                          className="flex min-h-[44px] items-center text-xs font-semibold text-[#52555f] hover:text-[#121316] py-1.5 px-2 transition-colors rounded-lg focus-visible:ring-2 focus-visible:ring-[#d9532f]"
+                          aria-label="Return to previous step"
+                        >
+                          ← Back
+                        </button>
+                        <span className="text-[11px] text-[#52555f]">Tap an option to continue</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ======================================================== */}
+                  {/* STEP 3: CONTACT DETAILS (Single-Column + Inline Check)   */}
+                  {/* ======================================================== */}
+                  {step === 3 && (
+                    <div className="flex flex-col space-y-4">
+                      {/* Selected Calibration Pill */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center justify-between rounded-2xl border border-stone-200 bg-[#faf7f2] px-3.5 py-2.5 text-xs"
+                      >
+                        <span className="font-medium text-[#121316] truncate pr-2">
+                          ✓ {selectedSpecialtyObj.label} · {selectedGoalObj.label}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playSensoryFeedback("tap");
+                            goToStep(0);
+                          }}
+                          className="shrink-0 font-bold text-[#d9532f] hover:underline underline-offset-2"
+                        >
+                          Change
+                        </button>
+                      </motion.div>
+
+                      {/* FIELD 1: INSTAGRAM HANDLE */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.04 }}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label
+                            htmlFor={`${idPrefix}-enquire-handle`}
+                            className="block text-xs font-bold uppercase tracking-wider text-[#121316]"
+                          >
+                            Instagram Handle
+                          </label>
+                          <span className="font-mono text-[11px] font-semibold text-[#d9532f]">
+                            qualfi.com/@{cleanHandle}
+                          </span>
+                        </div>
+
+                        <div
+                          className={`relative flex min-h-[52px] items-center rounded-2xl border bg-[#faf7f2]/60 px-4 transition-all ${
+                            errors.handle
+                              ? "border-rose-500 bg-rose-50/50"
+                              : isFieldValid("handle")
+                              ? "border-[#10b981] bg-[#10b981]/5"
+                              : "border-stone-300 focus-within:border-[#d9532f] focus-within:bg-white focus-within:shadow-xs"
+                          }`}
+                        >
+                          <span className="font-mono text-base font-bold text-[#52555f] select-none mr-1">
+                            @
+                          </span>
+                          <input
+                            id={`${idPrefix}-enquire-handle`}
+                            type="text"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            placeholder="coachmaya"
+                            aria-invalid={Boolean(errors.handle)}
+                            aria-describedby={errors.handle ? `${idPrefix}-enquire-handle-error` : undefined}
+                            {...register("handle", {
+                              onChange: (e) => {
+                                e.target.value = e.target.value.replace(/^@+/, "");
+                              },
+                            })}
+                            className="w-full bg-transparent py-3 text-base font-medium text-[#121316] outline-none placeholder:text-stone-400"
+                          />
+
+                          <AnimatePresence mode="wait">
+                            {isFieldValid("handle") && (
+                              <motion.span
+                                key="handle-valid"
+                                initial={{ scale: 0.4, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.4, opacity: 0 }}
+                                transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                                className="ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#10b981] text-xs font-bold text-white"
+                              >
+                                ✓
+                              </motion.span>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        <AnimatePresence mode="wait">
+                          {errors.handle ? (
+                            <motion.p
+                              id={`${idPrefix}-enquire-handle-error`}
+                              role="alert"
+                              key="handle-error"
+                              initial={{ opacity: 0, y: -4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -4 }}
+                              className="mt-1 text-xs font-medium text-rose-600"
+                            >
+                              {errors.handle.message}
+                            </motion.p>
+                          ) : isFieldValid("handle") ? (
+                            <motion.p
+                              key="handle-ok"
+                              initial={{ opacity: 0, y: -4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -4 }}
+                              className="mt-1 text-xs font-semibold text-[#047857]"
+                            >
+                              ✓ qualfi.com/@{cleanHandle} is available
+                            </motion.p>
+                          ) : null}
+                        </AnimatePresence>
+                      </motion.div>
+
+                      {/* FIELD 2: YOUR NAME */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.08 }}
+                      >
+                        <label
+                          htmlFor={`${idPrefix}-enquire-name`}
+                          className="block text-xs font-bold uppercase tracking-wider text-[#121316] mb-1.5"
+                        >
+                          Your Name
+                        </label>
+                        <div
+                          className={`relative flex min-h-[52px] items-center rounded-2xl border bg-[#faf7f2]/60 px-4 transition-all ${
+                            errors.name
+                              ? "border-rose-500 bg-rose-50/50"
+                              : isFieldValid("name")
+                              ? "border-[#10b981] bg-[#10b981]/5"
+                              : "border-stone-300 focus-within:border-[#d9532f] focus-within:bg-white focus-within:shadow-xs"
+                          }`}
+                        >
+                          <input
+                            id={`${idPrefix}-enquire-name`}
+                            type="text"
+                            autoComplete="name"
+                            placeholder="Maya Lin"
+                            aria-invalid={Boolean(errors.name)}
+                            aria-describedby={errors.name ? `${idPrefix}-enquire-name-error` : undefined}
+                            {...register("name")}
+                            className="w-full bg-transparent py-3 text-base font-medium text-[#121316] outline-none placeholder:text-stone-400"
+                          />
+
+                          <AnimatePresence mode="wait">
+                            {isFieldValid("name") && (
+                              <motion.span
+                                key="name-valid"
+                                initial={{ scale: 0.4, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.4, opacity: 0 }}
+                                transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                                className="ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#10b981] text-xs font-bold text-white"
+                              >
+                                ✓
+                              </motion.span>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        <AnimatePresence mode="wait">
+                          {errors.name && (
+                            <motion.p
+                              id={`${idPrefix}-enquire-name-error`}
+                              role="alert"
+                              key="name-error"
+                              initial={{ opacity: 0, y: -4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -4 }}
+                              className="mt-1 text-xs font-medium text-rose-600"
+                            >
+                              {errors.name.message}
+                            </motion.p>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+
+                      {/* FIELD 3: WHATSAPP NUMBER */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.12 }}
+                      >
+                        <label
+                          htmlFor={`${idPrefix}-enquire-whatsapp`}
+                          className="block text-xs font-bold uppercase tracking-wider text-[#121316] mb-1.5"
+                        >
+                          WhatsApp Number
+                        </label>
+                        <div
+                          className={`relative flex min-h-[52px] items-center rounded-2xl border bg-[#faf7f2]/60 px-4 transition-all ${
+                            errors.whatsapp
+                              ? "border-rose-500 bg-rose-50/50"
+                              : isFieldValid("whatsapp")
+                              ? "border-[#10b981] bg-[#10b981]/5"
+                              : "border-stone-300 focus-within:border-[#d9532f] focus-within:bg-white focus-within:shadow-xs"
+                          }`}
+                        >
+                          <input
+                            id={`${idPrefix}-enquire-whatsapp`}
+                            type="tel"
+                            inputMode="tel"
+                            autoComplete="tel"
+                            placeholder="+44 7911 123456"
+                            aria-invalid={Boolean(errors.whatsapp)}
+                            aria-describedby={errors.whatsapp ? `${idPrefix}-enquire-whatsapp-error` : undefined}
+                            {...register("whatsapp")}
+                            className="w-full bg-transparent py-3 text-base font-medium text-[#121316] outline-none placeholder:text-stone-400"
+                          />
+
+                          <AnimatePresence mode="wait">
+                            {isFieldValid("whatsapp") && (
+                              <motion.span
+                                key="whatsapp-valid"
+                                initial={{ scale: 0.4, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.4, opacity: 0 }}
+                                transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                                className="ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#10b981] text-xs font-bold text-white"
+                              >
+                                ✓
+                              </motion.span>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        <AnimatePresence mode="wait">
+                          {errors.whatsapp && (
+                            <motion.p
+                              id={`${idPrefix}-enquire-whatsapp-error`}
+                              role="alert"
+                              key="whatsapp-error"
+                              initial={{ opacity: 0, y: -4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -4 }}
+                              className="mt-1 text-xs font-medium text-rose-600"
+                            >
+                              {errors.whatsapp.message}
+                            </motion.p>
+                          )}
+                        </AnimatePresence>
+
+                        {/* Anxiety-Reducing Microcopy */}
+                        <p className="mt-2 flex items-center gap-1.5 text-xs text-[#52555f]">
+                          <span>
+                            We only use this to text your working preview link in 72h. Zero spam.
+                          </span>
+                        </p>
+                      </motion.div>
+
+                      {/* GDPR & CCPA Privacy Disclosure */}
+                      <div className="pt-1">
+                        <p className="text-[11px] leading-relaxed text-[#52555f]">
+                          By continuing, you agree to qualfi processing your details to prepare your custom bio preview. Review our{" "}
+                          <Link
+                            href="/privacy"
+                            className="font-medium text-[#121316] underline underline-offset-2 hover:text-[#d9532f] transition-colors"
+                          >
+                            Privacy Policy
+                          </Link>{" "}
+                          and{" "}
+                          <Link
+                            href="/terms"
+                            className="font-medium text-[#121316] underline underline-offset-2 hover:text-[#d9532f] transition-colors"
+                          >
+                            Terms of Service
+                          </Link>.
+                        </p>
+                      </div>
+
+                      {/* Submit CTA & Back Button */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.16 }}
+                        className="pt-2"
+                      >
+                        <motion.button
+                          type="submit"
+                          whileHover={{ scale: 1.015 }}
+                          whileTap={{ scale: 0.97 }}
+                          className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-full bg-[#d9532f] px-6 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-md hover:bg-[#b83e1d] transition-colors focus-visible:ring-2 focus-visible:ring-[#121316]"
+                        >
+                          <span>Send My Custom Preview</span>
+                          <span>→</span>
+                        </motion.button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playSensoryFeedback("tap");
+                            goToStep(2);
+                          }}
+                          className="mt-2 flex min-h-[44px] w-full items-center justify-center text-center text-xs font-semibold text-[#52555f] hover:text-[#121316] transition-colors rounded-lg focus-visible:ring-2 focus-visible:ring-[#d9532f]"
+                          aria-label="Return to previous step"
+                        >
+                          ← Back
+                        </button>
+                      </motion.div>
+                    </div>
+                  )}
+
+                  {/* ======================================================== */}
+                  {/* STEP 4: UNLOCKED PREVIEW CONFIRMATION                    */}
+                  {/* ======================================================== */}
+                  {step === 4 && (
+                    <div className="flex flex-col space-y-5 text-left">
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, ease: EASING.naturalOut }}
+                        className="rounded-2xl border border-[#d9532f]/25 bg-gradient-to-br from-[#faf7f2] to-white p-4 shadow-xs"
+                      >
+                        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#047857]">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                          Reserved & Queued For Build
+                        </span>
+                        <div className="mt-1 font-serif text-2xl sm:text-3xl font-light text-[#121316]">
+                          qualfi.com/@{cleanHandle}
+                        </div>
+                        <p className="mt-1 text-xs text-[#52555f]">
+                          Custom preview for <b>{watchedValues.name}</b> ready within 72 hours.
+                        </p>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.06, ease: EASING.naturalOut }}
+                        className="flex flex-col space-y-2 rounded-2xl border border-stone-200 bg-[#faf7f2]/70 p-4 text-xs"
+                      >
+                        <div className="flex justify-between py-1 border-b border-stone-200/70">
+                          <span className="text-[#52555f]">Coaching Focus</span>
+                          <span className="font-bold text-[#121316]">{selectedSpecialtyObj.label}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-stone-200/70">
+                          <span className="text-[#52555f]">Monthly Goal</span>
+                          <span className="font-bold text-[#121316]">{selectedGoalObj.label}</span>
+                        </div>
+                        <div className="flex justify-between py-1">
+                          <span className="text-[#52555f]">Preview Sent To</span>
+                          <span className="font-bold text-[#047857]">{watchedValues.whatsapp}</span>
+                        </div>
+                      </motion.div>
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.12, ease: EASING.naturalOut }}
+                        className="flex flex-col space-y-2.5"
+                      >
+                        <motion.a
+                          href={whatsAppFastTrackHref()}
+                          target="_blank"
+                          rel="noreferrer"
+                          whileHover={{ scale: 1.015 }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => playSensoryFeedback("tap")}
+                          className="flex min-h-[54px] w-full items-center justify-center gap-2 rounded-full bg-[#121316] px-6 py-4 text-xs font-bold uppercase tracking-wider text-white shadow-md hover:bg-[#d9532f] transition-colors"
+                        >
+                          <span>Chat With Us On WhatsApp</span>
+                          <span>→</span>
+                        </motion.a>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playSensoryFeedback("tap");
+                            goToStep(3);
+                          }}
+                          className="min-h-[44px] w-full rounded-full border border-stone-200 bg-white py-2.5 text-xs font-semibold text-[#52555f] hover:text-[#121316] transition-colors"
+                        >
+                          Edit My Details
+                        </button>
+                      </motion.div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </form>
+        </motion.div>
+      </div>
+    </section>
+  );
+}

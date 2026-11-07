@@ -1,0 +1,33 @@
+﻿QUALFI - SITE 1 - "KILN"  (site-1)
+=====================================
+Concept: hand-thrown ceramic. Wabi-sabi by way of editorial studio pottery.
+Sections: Hero - (Retired strip) - Interactive Demo - Enquire - Footer
+
+VISUAL DIRECTION
+- Mood: warm, tactile, quietly confident. Looks like a glazed pot photographed on linen.
+- Palette: bone #ECE4D6 - clay #B5654A - ink #231D17 - moss #6B6F4E - soft clay #D58A6E
+- Type: Fraunces (display, italic accents, tight -0.03em) + DM Sans (body)
+- Texture: multiply-blended paper grain over everything; every shape is an imperfect pebble
+  (asymmetric border-radius), nothing is a true circle or rectangle.
+- Hand-drawn enso/ring SVG that draws itself around the "<2s" stat.
+
+LAYOUT
+- Hero: 8/4 editorial split. Giant masked-word headline "-DM me READY- was never a funnel."
+- Retired strip: Linktree / Static forms / -DM me READY- struck through one by one.
+- Demo: sticky 4/8 split; clay slab (asymmetric corners) holds the quiz. Results = score ring,
+  macro "stones" sized by grams, WhatsApp toast.
+- Enquire: ink-black band, underline-only inputs, clay pill CTA.
+- Footer: cropped 30vw italic "qualfi" wordmark rising into view.
+
+COPY TONE: soft, literate, a little wry.
+
+ANIMATION PRINCIPLES APPLIED
+- Ease-out entrances (cubic-bezier .16,1,.3,1) - ease-in-out for moves/ring draw
+- Swaps 200ms, exits 160ms (20% shorter) - list rows staggered 30ms
+- Press scale .97 - slider knob stretches 12% while dragged, rubber-bands past the track
+- Shared layoutId "pebble" glides between answers on hover
+- Pebble travels an arc (x ease-in-out, y ease-out, offset timing)
+- Masks: word-by-word reveals, strike-through scaleX, ring pathLength
+- Blur-crossfade between steps with old/new overlapping (popLayout)
+- WhatsApp toast enters from the tool, success dot pulses
+

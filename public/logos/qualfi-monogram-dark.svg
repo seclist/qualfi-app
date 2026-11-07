@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="bgDarkMonogram" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#1e2026"/>
+      <stop offset="70%" stop-color="#121316"/>
+      <stop offset="100%" stop-color="#0a0a0c"/>
+    </radialGradient>
+    <linearGradient id="terracottaDarkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ea653e"/>
+      <stop offset="100%" stop-color="#d9532f"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1080" height="1080" fill="url(#bgDarkMonogram)" />
+
+  <!-- Circular Avatar Crop Guide -->
+  <circle cx="540" cy="540" r="500" fill="none" stroke="#2a2d35" stroke-width="2" stroke-dasharray="8 8" opacity="0.5"/>
+
+  <!-- Centered Iconic "Q" Monogram -->
+  <g id="monogram-q-dark">
+    <!-- Outer Ring of Q -->
+    <circle cx="520" cy="520" r="230" fill="none" stroke="#ffffff" stroke-width="72" stroke-linecap="round"/>
+    
+    <!-- Tail of Q (Geometric dynamic stroke) -->
+    <path d="M 640 640 L 735 735" stroke="#ffffff" stroke-width="72" stroke-linecap="round"/>
+
+    <!-- Qualfi Signature Terracotta Dot Accent -->
+    <circle cx="770" cy="520" r="46" fill="url(#terracottaDarkGrad)" />
+  </g>
+</svg>
