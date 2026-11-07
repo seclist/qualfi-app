@@ -929,13 +929,33 @@ export function GetYourFunnel({
                         transition={{ delay: 0.16 }}
                         className="pt-2"
                       >
+                        <AnimatePresence mode="wait">
+                          {submitError && (
+                            <motion.div
+                              key="submit-error"
+                              role="alert"
+                              initial={{ opacity: 0, y: -4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -4 }}
+                              className="mb-3 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-medium text-rose-700"
+                            >
+                              {submitError}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
                         <motion.button
                           type="submit"
+                          disabled={isCalculating}
                           whileHover={{ scale: 1.015 }}
                           whileTap={{ scale: 0.97 }}
-                          className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-full bg-[#d9532f] px-6 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-md hover:bg-[#b83e1d] transition-colors focus-visible:ring-2 focus-visible:ring-[#121316]"
+                          className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-full bg-[#d9532f] px-6 py-4 text-sm font-bold uppercase tracking-wider text-white shadow-md hover:bg-[#b83e1d] transition-colors focus-visible:ring-2 focus-visible:ring-[#121316] disabled:opacity-60"
                         >
-                          <span>Send My Custom Preview</span>
+                          <span>
+                            {isCalculating
+                              ? "Saving Your Request..."
+                              : "Send My Custom Preview"}
+                          </span>
                           <span>→</span>
                         </motion.button>
 
