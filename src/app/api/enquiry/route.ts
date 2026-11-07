@@ -232,9 +232,13 @@ export async function POST(request: Request) {
         }),
       });
 
-      if (!hookRes.ok) {
-        const errText = await hookRes.text();
-        throw new Error(`Google Sheets webhook error: ${errText}`);
+      const respText = await hookRes.text();
+      if (!hookRes.ok || respText.includes("<!DOCTYPE html>")) {
+        throw new Error(
+          respText.includes("You need access")
+            ? "Apps Script Web App access is set to 'Only myself'. In Apps Script -> Deploy -> Manage deployments -> Edit, set 'Who has access' to 'Anyone'."
+            : `Google Sheets webhook error (${hookRes.status}): ${respText.slice(0, 200)}`
+        );
       }
     } else if (serviceEmail && servicePrivateKey) {
       const accessToken = await getServiceAccountAccessToken(
