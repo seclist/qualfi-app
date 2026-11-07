@@ -201,14 +201,17 @@ export async function POST(request: Request) {
       "", // N: Notes / Conversation
     ];
 
-    const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+    const webhookUrl =
+      process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
+      "https://script.google.com/macros/s/AKfycbzNN90r0GRXqycq8Y_LJ55R8vAC3XIiNUROeV2lghFJKdm_WZO0LwXHDuBChMshhjIAZA/exec";
     const serviceEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     const servicePrivateKey = process.env.GOOGLE_PRIVATE_KEY;
 
     if (webhookUrl) {
       const hookRes = await fetch(webhookUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           spreadsheetId: SPREADSHEET_ID,
           sheetName: "Inbound",
