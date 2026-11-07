@@ -2,21 +2,31 @@ import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-const SPREADSHEET_ID =
-  process.env.GOOGLE_SPREADSHEET_ID ||
-  "1rHKepeU7-MqlbRDQmrWeRrM6qIFGFlf5MuKDxjtseeM";
 const SHEET_RANGE = "Inbound!A:N";
 
-const DEFAULT_WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbzNN90r0GRXqycq8Y_LJ55R8vAC3XIiNUROeV2lghFJKdm_WZO0LwXHDuBChMshhjIAZA/exec";
+const ALLOWED_ORIGINS = new Set([
+  "https://www.qualfi.app",
+  "https://qualfi.app",
+  "https://qualfi-app.vercel.app",
+  ...(process.env.NODE_ENV === "development" ? ["http://localhost:3000"] : []),
+]);
 
-// Lightweight in-memory rate limiter (5 requests per 10 minutes per IP)
+// Bounded in-memory rate limiter (5 requests per 10 minutes per IP, max 2,000 tracked IPs)
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 5;
+const MAX_TRACKED_IPS = 2000;
 const ipRequestLog = new Map<string, number[]>();
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
+
+  if (!ipRequestLog.has(ip) && ipRequestLog.size >= MAX_TRACKED_IPS) {
+    const oldestKey = ipRequestLog.keys().next().value;
+    if (oldestKey) {
+      ipRequestLog.delete(oldestKey);
+    }
+  }
+
   const recent = (ipRequestLog.get(ip) || []).filter(
     (ts) => now - ts < RATE_LIMIT_WINDOW_MS
   );
@@ -26,6 +36,38 @@ function isRateLimited(ip: string): boolean {
   }
   recent.push(now);
   ipRequestLog.set(ip, recent);
+  return false;
+}
+
+function isOriginAllowed(request: Request): boolean {
+  const secFetchSite = request.headers.get("sec-fetch-site");
+  if (
+    secFetchSite &&
+    secFetchSite !== "same-origin" &&
+    secFetchSite !== "same-site" &&
+    secFetchSite !== "none"
+  ) {
+    return false;
+  }
+
+  const origin = request.headers.get("origin");
+  if (!origin) {
+    // Allow same-origin server/CLI requests in development or when Origin is omitted by same-origin fetch
+    return true;
+  }
+
+  if (ALLOWED_ORIGINS.has(origin)) {
+    return true;
+  }
+
+  // Allow Vercel preview deployment URLs belonging to this project
+  if (
+    origin.endsWith("-owens-projects-0cc993eb.vercel.app") &&
+    origin.startsWith("https://qualfi-")
+  ) {
+    return true;
+  }
+
   return false;
 }
 
@@ -40,45 +82,47 @@ function sanitizeSheetText(value: string): string {
   return cleaned;
 }
 
-const enquiryPayloadSchema = z.object({
-  specialty: z.enum(["fatloss", "strength", "hyrox", "busy_pros"]),
-  clientGoal: z.enum(["3to5", "5to10", "10plus"]),
-  bottleneck: z.enum(["linktree", "cold_dms", "dm_ready"]),
-  handle: z
-    .string()
-    .trim()
-    .transform((v) => v.replace(/^@+/, "").trim())
-    .refine(
-      (v) => v.length >= 2 && v.length <= 30 && /^[a-zA-Z0-9._]+$/.test(v),
-      {
-        message:
-          "Handle must be 2–30 characters using letters, numbers, periods, or underscores",
-      }
-    ),
-  name: z
-    .string()
-    .trim()
-    .min(2, "Name must be at least 2 characters")
-    .max(60, "Name must be under 60 characters"),
-  whatsapp: z
-    .string()
-    .trim()
-    .min(7, "Enter a valid WhatsApp or mobile number")
-    .max(20, "Number is too long")
-    .regex(/^[+\d\s()-]{7,20}$/, "Enter a valid phone number")
-    .refine(
-      (v) => {
-        const digits = v.replace(/[^0-9]/g, "");
-        return digits.length >= 7 && digits.length <= 15;
-      },
-      { message: "Phone number must contain between 7 and 15 digits" }
-    ),
-  consent: z.literal(true, {
-    message: "Explicit data processing consent is required.",
-  }),
-  website: z.string().max(100).optional(), // Honeypot field
-  device: z.enum(["Mobile", "Desktop"]).optional(),
-});
+const enquiryPayloadSchema = z
+  .object({
+    specialty: z.enum(["fatloss", "strength", "hyrox", "busy_pros"]),
+    clientGoal: z.enum(["3to5", "5to10", "10plus"]),
+    bottleneck: z.enum(["linktree", "cold_dms", "dm_ready"]),
+    handle: z
+      .string()
+      .trim()
+      .transform((v) => v.replace(/^@+/, "").trim())
+      .refine(
+        (v) => v.length >= 2 && v.length <= 30 && /^[a-zA-Z0-9._]+$/.test(v),
+        {
+          message:
+            "Handle must be 2–30 characters using letters, numbers, periods, or underscores",
+        }
+      ),
+    name: z
+      .string()
+      .trim()
+      .min(2, "Name must be at least 2 characters")
+      .max(60, "Name must be under 60 characters"),
+    whatsapp: z
+      .string()
+      .trim()
+      .min(7, "Enter a valid WhatsApp or mobile number")
+      .max(20, "Number is too long")
+      .regex(/^[+\d\s()-]{7,20}$/, "Enter a valid phone number")
+      .refine(
+        (v) => {
+          const digits = v.replace(/[^0-9]/g, "");
+          return digits.length >= 7 && digits.length <= 15;
+        },
+        { message: "Phone number must contain between 7 and 15 digits" }
+      ),
+    consent: z.literal(true, {
+      message: "Explicit data processing consent is required.",
+    }),
+    website: z.string().max(100).optional(), // Honeypot field
+    device: z.enum(["Mobile", "Desktop"]).optional(),
+  })
+  .strict();
 
 const SPECIALTY_LABELS: Record<
   z.infer<typeof enquiryPayloadSchema>["specialty"],
@@ -176,11 +220,12 @@ async function getServiceAccountAccessToken(
 }
 
 async function appendRowWithSheetsApi(
+  spreadsheetId: string,
   accessToken: string,
   rowValues: string[]
 ): Promise<void> {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(
-    SPREADSHEET_ID
+    spreadsheetId
   )}/values/${encodeURIComponent(
     SHEET_RANGE
   )}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
@@ -203,18 +248,40 @@ async function appendRowWithSheetsApi(
   }
 }
 
+const NO_STORE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate",
+  Pragma: "no-cache",
+};
+
 export async function POST(request: Request) {
   try {
-    // 1. Guard payload size (max 8KB)
+    // 1. Zero-Trust Origin & CSRF Validation
+    if (!isOriginAllowed(request)) {
+      return NextResponse.json(
+        { ok: false, error: "Forbidden origin." },
+        { status: 403, headers: NO_STORE_HEADERS }
+      );
+    }
+
+    // 2. Enforce JSON Content-Type
+    const contentType = request.headers.get("content-type") || "";
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json(
+        { ok: false, error: "Content-Type must be application/json." },
+        { status: 415, headers: NO_STORE_HEADERS }
+      );
+    }
+
+    // 3. Guard payload size (max 8KB)
     const contentLength = Number(request.headers.get("content-length") || "0");
     if (contentLength > 8192) {
       return NextResponse.json(
         { ok: false, error: "Request payload is too large." },
-        { status: 413 }
+        { status: 413, headers: NO_STORE_HEADERS }
       );
     }
 
-    // 2. Per-IP rate limiting
+    // 4. Bounded Per-IP Rate Limiting
     const forwardedFor = request.headers.get("x-forwarded-for");
     const clientIp = forwardedFor
       ? forwardedFor.split(",")[0].trim()
@@ -226,13 +293,13 @@ export async function POST(request: Request) {
           error:
             "Too many requests submitted recently. Please wait a few minutes and try again.",
         },
-        { status: 429 }
+        { status: 429, headers: NO_STORE_HEADERS }
       );
     }
 
     const rawBody: unknown = await request.json();
 
-    // 3. Honeypot bot check (silently accept and drop automated spam bots)
+    // 5. Honeypot bot check (silently accept and drop automated spam bots)
     if (
       typeof rawBody === "object" &&
       rawBody !== null &&
@@ -240,9 +307,10 @@ export async function POST(request: Request) {
       typeof (rawBody as { website?: unknown }).website === "string" &&
       (rawBody as { website: string }).website.trim().length > 0
     ) {
-      return NextResponse.json({ ok: true });
+      return NextResponse.json({ ok: true }, { headers: NO_STORE_HEADERS });
     }
 
+    // 6. Positive Security Model (Strict Zod Allowlist Schema)
     const parsed = enquiryPayloadSchema.safeParse(rawBody);
 
     if (!parsed.success) {
@@ -251,9 +319,8 @@ export async function POST(request: Request) {
         {
           ok: false,
           error: firstIssue,
-          issues: parsed.error.flatten().fieldErrors,
         },
-        { status: 400 }
+        { status: 400, headers: NO_STORE_HEADERS }
       );
     }
 
@@ -303,8 +370,9 @@ export async function POST(request: Request) {
       consentAuditNote, // N: Notes / Conversation (stores GDPR opt-in audit record)
     ];
 
-    const webhookUrl =
-      process.env.GOOGLE_SHEETS_WEBHOOK_URL || DEFAULT_WEBHOOK_URL;
+    // 7. Absolute Secret Isolation: Loaded exclusively from encrypted environment variables
+    const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+    const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
     const serviceEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     const servicePrivateKey = process.env.GOOGLE_PRIVATE_KEY;
 
@@ -314,72 +382,62 @@ export async function POST(request: Request) {
         redirect: "follow",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
-          spreadsheetId: SPREADSHEET_ID,
           sheetName: "Inbound",
           row: rowValues,
-          lead: {
-            timestamp,
-            status,
-            intentScore,
-            coachName: data.name.trim(),
-            handle: formattedHandle,
-            whatsapp: rawPhone,
-            coachingFocus,
-            monthlyGoal,
-            bottleneck: bottleneckLabel,
-            assignedBioUrl,
-            device: detectedDevice,
-            consentVerified: true,
-          },
         }),
         signal: AbortSignal.timeout(10000),
       });
 
       const respText = await hookRes.text();
       if (!hookRes.ok || respText.includes("<!DOCTYPE html>")) {
-        console.error(
-          "[POST /api/enquiry] Upstream webhook error:",
-          hookRes.status,
-          respText.slice(0, 300)
-        );
-        throw new Error(
-          "We could not save your request right now. Please try again in a moment."
-        );
+        console.error("[POST /api/enquiry] Upstream webhook error:", {
+          status: hookRes.status,
+        });
+        throw new Error("Upstream webhook error");
       }
-    } else if (serviceEmail && servicePrivateKey) {
+    } else if (spreadsheetId && serviceEmail && servicePrivateKey) {
       const accessToken = await getServiceAccountAccessToken(
         serviceEmail,
         servicePrivateKey
       );
-      await appendRowWithSheetsApi(accessToken, rowValues);
+      await appendRowWithSheetsApi(spreadsheetId, accessToken, rowValues);
     } else {
+      console.error(
+        "[POST /api/enquiry] Missing GOOGLE_SHEETS_WEBHOOK_URL configuration"
+      );
       return NextResponse.json(
         {
           ok: false,
           error: "Lead capture service is temporarily unavailable.",
         },
-        { status: 503 }
+        { status: 503, headers: NO_STORE_HEADERS }
       );
     }
 
-    return NextResponse.json({
-      ok: true,
-      lead: {
-        timestamp,
-        intentScore,
-        handle: formattedHandle,
-        assignedBioUrl,
+    return NextResponse.json(
+      {
+        ok: true,
+        lead: {
+          timestamp,
+          intentScore,
+          handle: formattedHandle,
+          assignedBioUrl,
+        },
       },
-    });
+      { headers: NO_STORE_HEADERS }
+    );
   } catch (error) {
-    console.error("[POST /api/enquiry] Error:", error);
+    // 8. Fail Securely & Scrub PII from logs
+    console.error("[POST /api/enquiry] Request failed:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
     return NextResponse.json(
       {
         ok: false,
         error:
           "Unable to save your enquiry right now. Please check your connection and try again.",
       },
-      { status: 500 }
+      { status: 500, headers: NO_STORE_HEADERS }
     );
   }
 }

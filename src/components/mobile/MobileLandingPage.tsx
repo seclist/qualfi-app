@@ -153,30 +153,95 @@ export function MobileLandingPage() {
     }
   };
 
-  // Load persisted progress on client mount (Principle 15)
+  // Load persisted progress on client mount with Safe Deserialization & Allowlist Validation (Principle 15)
   useEffect(() => {
-    try {
-      const savedData = localStorage.getItem("qualfi_mobile_progress");
-      setTimeout(() => {
-        if (savedData) {
-          const parsed = JSON.parse(savedData);
-          if (parsed.answers) setAnswers(parsed.answers);
-          if (typeof parsed.step === "number") setStep(parsed.step);
+    setTimeout(() => {
+      try {
+        const savedData = localStorage.getItem("qualfi_mobile_progress");
+        if (!savedData) return;
+        const parsed: unknown = JSON.parse(savedData);
+        if (typeof parsed !== "object" || parsed === null) return;
+        const record = parsed as Record<string, unknown>;
+
+        if (
+          typeof record.step === "number" &&
+          Number.isInteger(record.step) &&
+          record.step >= 0 &&
+          record.step <= 4
+        ) {
+          setStep(record.step);
         }
-      }, 0);
-    } catch {
-      // LocalStorage unavailable
-    }
+
+        if (typeof record.answers === "object" && record.answers !== null) {
+          const rawAns = record.answers as Record<string, unknown>;
+          setAnswers((prev) => ({
+            ...prev,
+            goal:
+              rawAns.goal === "lose" ||
+              rawAns.goal === "build" ||
+              rawAns.goal === "recomp"
+                ? rawAns.goal
+                : prev.goal,
+            age:
+              typeof rawAns.age === "number" &&
+              rawAns.age >= 16 &&
+              rawAns.age <= 90
+                ? Math.round(rawAns.age)
+                : prev.age,
+            weight:
+              typeof rawAns.weight === "number" &&
+              rawAns.weight >= 40 &&
+              rawAns.weight <= 200
+                ? Math.round(rawAns.weight)
+                : prev.weight,
+            days:
+              rawAns.days === 2 ||
+              rawAns.days === 3 ||
+              rawAns.days === 4 ||
+              rawAns.days === 5 ||
+              rawAns.days === 6
+                ? rawAns.days
+                : prev.days,
+            struggle:
+              rawAns.struggle === "diet" ||
+              rawAns.struggle === "plateau" ||
+              rawAns.struggle === "time" ||
+              rawAns.struggle === "metabolism"
+                ? rawAns.struggle
+                : prev.struggle,
+          }));
+        }
+      } catch {
+        // LocalStorage unavailable or malformed JSON
+      }
+    }, 0);
   }, []);
 
-  // Save progress automatically (Principle 15)
+  // Save non-PII diagnostic progress automatically (Data Minimization & Principle 15)
   useEffect(() => {
     try {
-      localStorage.setItem("qualfi_mobile_progress", JSON.stringify({ answers, step }));
+      const minimizedAnswers = {
+        goal: answers.goal,
+        age: answers.age,
+        weight: answers.weight,
+        days: answers.days,
+        struggle: answers.struggle,
+      };
+      localStorage.setItem(
+        "qualfi_mobile_progress",
+        JSON.stringify({ answers: minimizedAnswers, step })
+      );
     } catch {
       // Ignore
     }
-  }, [answers, step]);
+  }, [
+    answers.goal,
+    answers.age,
+    answers.weight,
+    answers.days,
+    answers.struggle,
+    step,
+  ]);
 
   // Smooth, viewport-accurate scroll-spy for mobile bottom nav
   useEffect(() => {
