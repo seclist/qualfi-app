@@ -1121,6 +1121,16 @@ function Footer() {
             </a>
           </li>
           <li>
+            <a
+              href="https://www.instagram.com/qualfiapp/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#d9532f] transition-colors"
+            >
+              Instagram (@qualfiapp)
+            </a>
+          </li>
+          <li>
             <Link href="/privacy" className="hover:text-[#d9532f] transition-colors">
               Privacy Policy
             </Link>

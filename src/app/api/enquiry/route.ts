@@ -7,13 +7,76 @@ const SPREADSHEET_ID =
   "1rHKepeU7-MqlbRDQmrWeRrM6qIFGFlf5MuKDxjtseeM";
 const SHEET_RANGE = "Inbound!A:N";
 
+const DEFAULT_WEBHOOK_URL =
+  "https://script.google.com/macros/s/AKfycbzNN90r0GRXqycq8Y_LJ55R8vAC3XIiNUROeV2lghFJKdm_WZO0LwXHDuBChMshhjIAZA/exec";
+
+// Lightweight in-memory rate limiter (5 requests per 10 minutes per IP)
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 5;
+const ipRequestLog = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const recent = (ipRequestLog.get(ip) || []).filter(
+    (ts) => now - ts < RATE_LIMIT_WINDOW_MS
+  );
+  if (recent.length >= RATE_LIMIT_MAX_REQUESTS) {
+    ipRequestLog.set(ip, recent);
+    return true;
+  }
+  recent.push(now);
+  ipRequestLog.set(ip, recent);
+  return false;
+}
+
+/**
+ * Neutralize spreadsheet formula injection (=, +, -, @, tab, CR/LF)
+ */
+function sanitizeSheetText(value: string): string {
+  const cleaned = value.replace(/[\r\n\t]+/g, " ").trim();
+  if (/^[=+\-@']/.test(cleaned)) {
+    return `'${cleaned}`;
+  }
+  return cleaned;
+}
+
 const enquiryPayloadSchema = z.object({
   specialty: z.enum(["fatloss", "strength", "hyrox", "busy_pros"]),
   clientGoal: z.enum(["3to5", "5to10", "10plus"]),
   bottleneck: z.enum(["linktree", "cold_dms", "dm_ready"]),
-  handle: z.string().trim().min(2).max(30),
-  name: z.string().trim().min(2).max(60),
-  whatsapp: z.string().trim().min(7).max(20),
+  handle: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(/^@+/, "").trim())
+    .refine(
+      (v) => v.length >= 2 && v.length <= 30 && /^[a-zA-Z0-9._]+$/.test(v),
+      {
+        message:
+          "Handle must be 2–30 characters using letters, numbers, periods, or underscores",
+      }
+    ),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(60, "Name must be under 60 characters"),
+  whatsapp: z
+    .string()
+    .trim()
+    .min(7, "Enter a valid WhatsApp or mobile number")
+    .max(20, "Number is too long")
+    .regex(/^[+\d\s()-]{7,20}$/, "Enter a valid phone number")
+    .refine(
+      (v) => {
+        const digits = v.replace(/[^0-9]/g, "");
+        return digits.length >= 7 && digits.length <= 15;
+      },
+      { message: "Phone number must contain between 7 and 15 digits" }
+    ),
+  consent: z.literal(true, {
+    message: "Explicit data processing consent is required.",
+  }),
+  website: z.string().max(100).optional(), // Honeypot field
   device: z.enum(["Mobile", "Desktop"]).optional(),
 });
 
@@ -101,11 +164,11 @@ async function getServiceAccountAccessToken(
       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
       assertion: jwt,
     }),
+    signal: AbortSignal.timeout(10000),
   });
 
   if (!tokenRes.ok) {
-    const errText = await tokenRes.text();
-    throw new Error(`Google OAuth token exchange failed: ${errText}`);
+    throw new Error("Google OAuth token exchange failed");
   }
 
   const tokenJson = (await tokenRes.json()) as { access_token: string };
@@ -132,24 +195,62 @@ async function appendRowWithSheetsApi(
       majorDimension: "ROWS",
       values: [rowValues],
     }),
+    signal: AbortSignal.timeout(10000),
   });
 
   if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Google Sheets append failed: ${errText}`);
+    throw new Error(`Google Sheets API append failed (${response.status})`);
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const rawBody: unknown = await request.json();
-    const parsed = enquiryPayloadSchema.safeParse(rawBody);
+    // 1. Guard payload size (max 8KB)
+    const contentLength = Number(request.headers.get("content-length") || "0");
+    if (contentLength > 8192) {
+      return NextResponse.json(
+        { ok: false, error: "Request payload is too large." },
+        { status: 413 }
+      );
+    }
 
-    if (!parsed.success) {
+    // 2. Per-IP rate limiting
+    const forwardedFor = request.headers.get("x-forwarded-for");
+    const clientIp = forwardedFor
+      ? forwardedFor.split(",")[0].trim()
+      : "unknown";
+    if (clientIp !== "unknown" && isRateLimited(clientIp)) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Invalid form data",
+          error:
+            "Too many requests submitted recently. Please wait a few minutes and try again.",
+        },
+        { status: 429 }
+      );
+    }
+
+    const rawBody: unknown = await request.json();
+
+    // 3. Honeypot bot check (silently accept and drop automated spam bots)
+    if (
+      typeof rawBody === "object" &&
+      rawBody !== null &&
+      "website" in rawBody &&
+      typeof (rawBody as { website?: unknown }).website === "string" &&
+      (rawBody as { website: string }).website.trim().length > 0
+    ) {
+      return NextResponse.json({ ok: true });
+    }
+
+    const parsed = enquiryPayloadSchema.safeParse(rawBody);
+
+    if (!parsed.success) {
+      const firstIssue = parsed.error.issues[0]?.message || "Invalid form data";
+      return NextResponse.json(
+        {
+          ok: false,
+          error: firstIssue,
           issues: parsed.error.flatten().fieldErrors,
         },
         { status: 400 }
@@ -157,10 +258,10 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
-    const cleanHandle = data.handle.replace(/^@+/, "").trim();
+    const cleanHandle = data.handle; // Strictly validated /^[a-zA-Z0-9._]{2,30}$/
     const formattedHandle = `@${cleanHandle}`;
-    const coachName = data.name.trim();
-    const rawPhone = data.whatsapp.trim();
+    const safeCoachName = sanitizeSheetText(data.name);
+    const rawPhone = data.whatsapp.replace(/[\r\n\t]+/g, " ").trim();
     const phoneDigits = rawPhone.replace(/[^0-9]/g, "");
 
     const userAgent = request.headers.get("user-agent") || "";
@@ -175,21 +276,22 @@ export async function POST(request: Request) {
     const intentScore = computeIntentScore(data.clientGoal, data.bottleneck);
     const instagramFormula = `=HYPERLINK("https://instagram.com/${cleanHandle}", "View Profile ↗")`;
     const waText = encodeURIComponent(
-      `Hey ${coachName}, saw your application for Qualfi! We've reserved qualfi.com/@${cleanHandle} and started building your custom bio funnel.`
+      `Hey ${data.name.trim()}, saw your application for Qualfi! We've reserved qualfi.com/@${cleanHandle} and started building your custom bio funnel.`
     );
     const whatsappFormula = `=HYPERLINK("https://wa.me/${phoneDigits}?text=${waText}", "Open WhatsApp ↗")`;
     const coachingFocus = SPECIALTY_LABELS[data.specialty];
     const monthlyGoal = GOAL_LABELS[data.clientGoal];
     const bottleneckLabel = BOTTLENECK_LABELS[data.bottleneck];
     const assignedBioUrl = `qualfi.com/@${cleanHandle}`;
+    const consentAuditNote = `GDPR Opt-In Verified (${timestamp} UTC)`;
 
     // 14 columns (A through N) matching the Inbound sheet schema
     const rowValues: string[] = [
       timestamp, // A: Timestamp
       status, // B: Status
       intentScore, // C: Intent Score
-      coachName, // D: Coach Name
-      formattedHandle, // E: Instagram Handle
+      safeCoachName, // D: Coach Name (sanitized against formula injection)
+      `'${formattedHandle}`, // E: Instagram Handle (prefixed with ' so @ isn't parsed as formula)
       instagramFormula, // F: Instagram Profile
       `'${rawPhone}`, // G: WhatsApp / Phone (prefixed with ' so +44 is stored as text)
       whatsappFormula, // H: 1-Click WhatsApp Chat
@@ -198,12 +300,11 @@ export async function POST(request: Request) {
       bottleneckLabel, // K: Primary Bottleneck
       assignedBioUrl, // L: Assigned Bio URL
       detectedDevice, // M: Device
-      "", // N: Notes / Conversation
+      consentAuditNote, // N: Notes / Conversation (stores GDPR opt-in audit record)
     ];
 
     const webhookUrl =
-      process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
-      "https://script.google.com/macros/s/AKfycbzNN90r0GRXqycq8Y_LJ55R8vAC3XIiNUROeV2lghFJKdm_WZO0LwXHDuBChMshhjIAZA/exec";
+      process.env.GOOGLE_SHEETS_WEBHOOK_URL || DEFAULT_WEBHOOK_URL;
     const serviceEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     const servicePrivateKey = process.env.GOOGLE_PRIVATE_KEY;
 
@@ -220,7 +321,7 @@ export async function POST(request: Request) {
             timestamp,
             status,
             intentScore,
-            coachName,
+            coachName: data.name.trim(),
             handle: formattedHandle,
             whatsapp: rawPhone,
             coachingFocus,
@@ -228,16 +329,21 @@ export async function POST(request: Request) {
             bottleneck: bottleneckLabel,
             assignedBioUrl,
             device: detectedDevice,
+            consentVerified: true,
           },
         }),
+        signal: AbortSignal.timeout(10000),
       });
 
       const respText = await hookRes.text();
       if (!hookRes.ok || respText.includes("<!DOCTYPE html>")) {
+        console.error(
+          "[POST /api/enquiry] Upstream webhook error:",
+          hookRes.status,
+          respText.slice(0, 300)
+        );
         throw new Error(
-          respText.includes("You need access")
-            ? "Apps Script Web App access is set to 'Only myself'. In Apps Script -> Deploy -> Manage deployments -> Edit, set 'Who has access' to 'Anyone'."
-            : `Google Sheets webhook error (${hookRes.status}): ${respText.slice(0, 200)}`
+          "We could not save your request right now. Please try again in a moment."
         );
       }
     } else if (serviceEmail && servicePrivateKey) {
@@ -250,8 +356,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "Google Sheets credentials are not configured yet on the server.",
+          error: "Lead capture service is temporarily unavailable.",
         },
         { status: 503 }
       );
@@ -272,9 +377,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         error:
-          error instanceof Error
-            ? error.message
-            : "Unable to save your enquiry right now. Please try again.",
+          "Unable to save your enquiry right now. Please check your connection and try again.",
       },
       { status: 500 }
     );

@@ -34,7 +34,18 @@ const enquirySchema = z.object({
     .trim()
     .min(7, "Enter a valid WhatsApp or mobile number")
     .max(20, "Number is too long")
-    .regex(/^[+\d\s()-]{7,20}$/, "Enter a valid number (e.g. +44 7911 123456)"),
+    .regex(/^[+\d\s()-]{7,20}$/, "Enter a valid number (e.g. +44 7911 123456)")
+    .refine(
+      (v) => {
+        const digits = v.replace(/[^0-9]/g, "");
+        return digits.length >= 7 && digits.length <= 15;
+      },
+      { message: "Phone number must contain between 7 and 15 digits" }
+    ),
+  consent: z.boolean().refine((val) => val === true, {
+    message: "Please tick to consent to us processing your details and sending your preview",
+  }),
+  website: z.string().max(100).optional(),
 });
 
 export type EnquiryFormValues = z.infer<typeof enquirySchema>;
@@ -160,6 +171,8 @@ export function GetYourFunnel({
       handle: "",
       name: "",
       whatsapp: "",
+      consent: false,
+      website: "",
     },
   });
 
@@ -170,8 +183,6 @@ export function GetYourFunnel({
     SPECIALTIES.find((s) => s.id === watchedValues.specialty) || SPECIALTIES[0];
   const selectedGoalObj =
     CLIENT_GOALS.find((g) => g.id === watchedValues.clientGoal) || CLIENT_GOALS[1];
-  const selectedBottleneckObj =
-    BOTTLENECKS.find((b) => b.id === watchedValues.bottleneck) || BOTTLENECKS[0];
 
   const progressPercent =
     step === 0 ? 25 : step === 1 ? 50 : step === 2 ? 75 : 100;
@@ -179,6 +190,7 @@ export function GetYourFunnel({
   const goToStep = (target: 0 | 1 | 2 | 3 | 4) => {
     setDirection(target > step ? 1 : -1);
     setHoveredId(null);
+    setSubmitError(null);
     setStep(target);
   };
 
@@ -204,6 +216,7 @@ export function GetYourFunnel({
   };
 
   const onSubmit = async (values: EnquiryFormValues) => {
+    if (isCalculating) return;
     playSensoryFeedback("success");
     triggerMobileHaptic("success");
     setSubmitError(null);
@@ -247,10 +260,12 @@ export function GetYourFunnel({
     return Boolean(val && val.trim().length >= 2 && !errors[fieldName] && dirtyFields[fieldName]);
   };
 
-  const whatsAppFastTrackHref = () => {
-    const phone = "447911123456";
-    const text = [
-      `Hey qualfi, I just requested my custom bio funnel!`,
+  const emailFastTrackHref = () => {
+    const subject = `Custom Bio Funnel Request — @${cleanHandle}`;
+    const body = [
+      `Hey qualfi team,`,
+      ``,
+      `I just requested my custom bio funnel!`,
       ``,
       `Bio Link: qualfi.com/@${cleanHandle}`,
       `Coach: ${watchedValues.name}`,
@@ -258,7 +273,7 @@ export function GetYourFunnel({
       `Goal: ${selectedGoalObj.label}`,
       `WhatsApp: ${watchedValues.whatsapp}`,
     ].join("\n");
-    return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+    return `mailto:hello@qualfi.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   return (
@@ -902,24 +917,102 @@ export function GetYourFunnel({
                         </p>
                       </motion.div>
 
-                      {/* GDPR & CCPA Privacy Disclosure */}
+                      {/* Honeypot Anti-Bot Field (Hidden from real users) */}
+                      <div className="sr-only" aria-hidden="true">
+                        <label htmlFor={`${idPrefix}-enquire-website`}>
+                          Website
+                        </label>
+                        <input
+                          id={`${idPrefix}-enquire-website`}
+                          type="text"
+                          tabIndex={-1}
+                          autoComplete="off"
+                          {...register("website")}
+                        />
+                      </div>
+
+                      {/* Explicit GDPR / PECR Data Opt-In Checkbox */}
                       <div className="pt-1">
-                        <p className="text-[11px] leading-relaxed text-[#52555f]">
-                          By continuing, you agree to qualfi processing your details to prepare your custom bio preview. Review our{" "}
-                          <Link
-                            href="/privacy"
-                            className="font-medium text-[#121316] underline underline-offset-2 hover:text-[#d9532f] transition-colors"
-                          >
-                            Privacy Policy
-                          </Link>{" "}
-                          and{" "}
-                          <Link
-                            href="/terms"
-                            className="font-medium text-[#121316] underline underline-offset-2 hover:text-[#d9532f] transition-colors"
-                          >
-                            Terms of Service
-                          </Link>.
-                        </p>
+                        <label
+                          htmlFor={`${idPrefix}-enquire-consent`}
+                          className={`flex min-h-[48px] cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition-all ${
+                            errors.consent
+                              ? "border-rose-500 bg-rose-50/50"
+                              : watchedValues.consent
+                              ? "border-[#10b981] bg-[#10b981]/5"
+                              : "border-stone-200/90 bg-[#faf7f2]/70 hover:border-stone-300"
+                          }`}
+                        >
+                          <div className="relative mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
+                            <input
+                              id={`${idPrefix}-enquire-consent`}
+                              type="checkbox"
+                              aria-invalid={Boolean(errors.consent)}
+                              aria-describedby={
+                                errors.consent
+                                  ? `${idPrefix}-enquire-consent-error`
+                                  : undefined
+                              }
+                              {...register("consent")}
+                              onChange={(e) => {
+                                playSensoryFeedback("tap");
+                                triggerMobileHaptic("light");
+                                setValue("consent", e.target.checked, {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                });
+                              }}
+                              className="peer sr-only"
+                            />
+                            <span
+                              className={`flex h-5 w-5 items-center justify-center rounded-md border text-xs font-bold transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-[#d9532f] ${
+                                watchedValues.consent
+                                  ? "border-[#d9532f] bg-[#d9532f] text-white"
+                                  : errors.consent
+                                  ? "border-rose-500 bg-white text-transparent"
+                                  : "border-stone-300 bg-white text-transparent"
+                              }`}
+                            >
+                              ✓
+                            </span>
+                          </div>
+
+                          <span className="text-[11px] leading-relaxed text-[#52555f]">
+                            I opt in and consent to <b className="text-[#121316]">qualfi</b> storing and processing my details to build my custom bio preview and send it to my WhatsApp/phone. Read our{" "}
+                            <Link
+                              href="/privacy"
+                              className="font-medium text-[#121316] underline underline-offset-2 hover:text-[#d9532f] transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Privacy Policy
+                            </Link>{" "}
+                            and{" "}
+                            <Link
+                              href="/terms"
+                              className="font-medium text-[#121316] underline underline-offset-2 hover:text-[#d9532f] transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Terms of Service
+                            </Link>
+                            .
+                          </span>
+                        </label>
+
+                        <AnimatePresence mode="wait">
+                          {errors.consent && (
+                            <motion.p
+                              id={`${idPrefix}-enquire-consent-error`}
+                              role="alert"
+                              key="consent-error"
+                              initial={{ opacity: 0, y: -4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -4 }}
+                              className="mt-1.5 text-xs font-medium text-rose-600"
+                            >
+                              {errors.consent.message}
+                            </motion.p>
+                          )}
+                        </AnimatePresence>
                       </div>
 
                       {/* Submit CTA & Back Button */}
@@ -1024,15 +1117,26 @@ export function GetYourFunnel({
                         className="flex flex-col space-y-2.5"
                       >
                         <motion.a
-                          href={whatsAppFastTrackHref()}
+                          href="https://www.instagram.com/qualfiapp/"
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           whileHover={{ scale: 1.015 }}
                           whileTap={{ scale: 0.97 }}
                           onClick={() => playSensoryFeedback("tap")}
                           className="flex min-h-[54px] w-full items-center justify-center gap-2 rounded-full bg-[#121316] px-6 py-4 text-xs font-bold uppercase tracking-wider text-white shadow-md hover:bg-[#d9532f] transition-colors"
                         >
-                          <span>Chat With Us On WhatsApp</span>
+                          <span>Follow @qualfiapp On Instagram</span>
+                          <span>↗</span>
+                        </motion.a>
+
+                        <motion.a
+                          href={emailFastTrackHref()}
+                          whileHover={{ scale: 1.015 }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => playSensoryFeedback("tap")}
+                          className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full border border-stone-300 bg-white px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-[#121316] shadow-xs hover:border-[#d9532f] hover:text-[#d9532f] transition-colors"
+                        >
+                          <span>Email Us · hello@qualfi.com</span>
                           <span>→</span>
                         </motion.a>
 
@@ -1042,7 +1146,7 @@ export function GetYourFunnel({
                             playSensoryFeedback("tap");
                             goToStep(3);
                           }}
-                          className="min-h-[44px] w-full rounded-full border border-stone-200 bg-white py-2.5 text-xs font-semibold text-[#52555f] hover:text-[#121316] transition-colors"
+                          className="min-h-[44px] w-full rounded-full border border-stone-200 bg-[#faf7f2] py-2.5 text-xs font-semibold text-[#52555f] hover:text-[#121316] transition-colors"
                         >
                           Edit My Details
                         </button>

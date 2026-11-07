@@ -1390,7 +1390,16 @@ export function MobileLandingPage() {
           <p className={`text-xs ${theme.textSecondary}`}>
             qualfi © 2026 · Bespoke micro-tools for coaches
           </p>
-          <div className="mt-3 flex items-center justify-center gap-4 text-xs font-medium text-[#52555f]">
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-xs font-medium text-[#52555f]">
+            <a
+              href="https://www.instagram.com/qualfiapp/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#d9532f] transition-colors underline underline-offset-2"
+            >
+              @qualfiapp
+            </a>
+            <span>·</span>
             <Link href="/privacy" className="hover:text-[#d9532f] transition-colors underline underline-offset-2">
               Privacy Policy
             </Link>
