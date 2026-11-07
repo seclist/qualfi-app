@@ -20,6 +20,7 @@ import {
 import { downloadCustomBlueprintPdf } from "@/lib/generatePdf";
 import { GetYourFunnel } from "@/components/GetYourFunnel";
 import { TopographicSectionDivider } from "@/components/TopographicSectionDivider";
+import { Knob } from "@/components/Knob";
 
 /**
  * ============================================================================
@@ -214,6 +215,11 @@ export function MobileLandingPage() {
 
   // Pull-to-refresh gesture listeners (Principle 14 Animation)
   const handleTouchStart = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('[role="slider"], button, input, a')) {
+      touchStartRef.current = 0;
+      return;
+    }
     if (window.scrollY === 0) {
       touchStartRef.current = e.touches[0].clientY;
     } else {
@@ -248,19 +254,28 @@ export function MobileLandingPage() {
     touchStartRef.current = 0;
   };
 
-  // Stepper continuous increment interval ref (Principle 13)
+  // Stepper continuous increment interval & initial delay refs (Principle 13)
+  const holdDelayRef = useRef<NodeJS.Timeout | null>(null);
   const holdIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const startHold = (action: () => void) => {
-    action();
-    holdIntervalRef.current = setInterval(action, 85);
-  };
-
   const stopHold = () => {
+    if (holdDelayRef.current) {
+      clearTimeout(holdDelayRef.current);
+      holdDelayRef.current = null;
+    }
     if (holdIntervalRef.current) {
       clearInterval(holdIntervalRef.current);
       holdIntervalRef.current = null;
     }
+  };
+
+  const startHold = (action: () => void) => {
+    stopHold();
+    action();
+    // 450ms initial hold delay ensures a normal tap never increments twice
+    holdDelayRef.current = setTimeout(() => {
+      holdIntervalRef.current = setInterval(action, 110);
+    }, 450);
   };
 
   // Step 4 Unlock Plan Validation (Principle 14: Clear Error States)
@@ -778,29 +793,75 @@ export function MobileLandingPage() {
                     <div className="space-y-4">
                       {/* Bodyweight Dial Card */}
                       <div className={`rounded-2xl border ${theme.cardBorder} ${theme.inputBg} p-4 shadow-xs`}>
-                        <div className="flex items-baseline justify-between">
-                          <span className={`text-xs font-bold uppercase tracking-wider ${theme.textSecondary}`}>
-                            Current Bodyweight
-                          </span>
-                          <div className="font-serif text-3xl font-light text-[#d9532f]">
-                            {answers.weight} <span className="text-base font-sans font-normal text-stone-500">kg</span>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className={`block text-xs font-bold uppercase tracking-wider ${theme.textSecondary}`}>
+                              Current Bodyweight
+                            </span>
+                            <div className="font-serif text-3xl font-light text-[#d9532f] mt-0.5">
+                              {answers.weight} <span className="text-base font-sans font-normal text-stone-500">kg</span>
+                            </div>
+                          </div>
+
+                          {/* Fine-Tune Weight Stepper Buttons */}
+                          <div className="flex items-center gap-2.5">
+                            <button
+                              type="button"
+                              onPointerDown={(e) => {
+                                if (e.button !== 0 && e.pointerType === "mouse") return;
+                                e.preventDefault();
+                                playSensoryFeedback("tap");
+                                triggerMobileHaptic("light");
+                                startHold(() => setAnswers((p) => ({ ...p, weight: Math.max(45, p.weight - 1) })));
+                              }}
+                              onPointerUp={stopHold}
+                              onPointerLeave={stopHold}
+                              onPointerCancel={stopHold}
+                              onContextMenu={(e) => e.preventDefault()}
+                              aria-label="Decrease bodyweight"
+                              className="flex h-12 w-12 touch-none select-none items-center justify-center rounded-full border border-stone-300 bg-stone-100 text-[#121316] active:scale-95 active:bg-[#d9532f] active:text-white transition-all"
+                            >
+                              <svg className="h-4 w-4 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              onPointerDown={(e) => {
+                                if (e.button !== 0 && e.pointerType === "mouse") return;
+                                e.preventDefault();
+                                playSensoryFeedback("tap");
+                                triggerMobileHaptic("light");
+                                startHold(() => setAnswers((p) => ({ ...p, weight: Math.min(140, p.weight + 1) })));
+                              }}
+                              onPointerUp={stopHold}
+                              onPointerLeave={stopHold}
+                              onPointerCancel={stopHold}
+                              onContextMenu={(e) => e.preventDefault()}
+                              aria-label="Increase bodyweight"
+                              className="flex h-12 w-12 touch-none select-none items-center justify-center rounded-full border border-stone-300 bg-stone-100 text-[#121316] active:scale-95 active:bg-[#d9532f] active:text-white transition-all"
+                            >
+                              <svg className="h-4 w-4 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
 
-                        {/* Interactive Range Slider (Principle 13: Minimized Data Entry) */}
-                        <div className="mt-4">
-                          <input
-                            type="range"
+                        {/* Full-Track Pointer-Captured Touch Slider */}
+                        <div className="mt-2">
+                          <Knob
                             min={45}
                             max={140}
                             value={answers.weight}
-                            onChange={(e) => {
-                              triggerMobileHaptic("light");
-                              setAnswers((p) => ({ ...p, weight: Number(e.target.value) }));
-                            }}
-                            className="w-full accent-[#d9532f] h-2 bg-stone-300 rounded-lg cursor-pointer"
+                            onChange={(val) => setAnswers((p) => ({ ...p, weight: val }))}
+                            knobSize={34}
+                            fillClassName="bg-[#d9532f]"
+                            knobClassName="bg-[#121316]"
                           />
-                          <div className="flex justify-between text-[11px] text-stone-400 mt-1">
+                          <div className="flex justify-between text-[11px] text-stone-400">
                             <span>45 kg</span>
                             <span>92 kg</span>
                             <span>140 kg</span>
@@ -808,56 +869,82 @@ export function MobileLandingPage() {
                         </div>
                       </div>
 
-                      {/* Age Stepper with hold-to-repeat (Principle 13) */}
-                      <div className={`flex items-center justify-between rounded-2xl border ${theme.cardBorder} ${theme.inputBg} p-4 shadow-xs`}>
-                        <div>
-                          <span className={`block text-xs font-bold uppercase tracking-wider ${theme.textSecondary}`}>
-                            Age
-                          </span>
-                          <div className="flex items-baseline gap-1 mt-0.5">
-                            <span className="font-serif text-3xl font-light">{answers.age}</span>
-                            <span className={`text-xs ${theme.textSecondary}`}>years old</span>
+                      {/* Age Stepper + Touch Slider Card (Principle 13) */}
+                      <div className={`rounded-2xl border ${theme.cardBorder} ${theme.inputBg} p-4 shadow-xs`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className={`block text-xs font-bold uppercase tracking-wider ${theme.textSecondary}`}>
+                              Age
+                            </span>
+                            <div className="flex items-baseline gap-1 mt-0.5">
+                              <span className="font-serif text-3xl font-light text-[#d9532f]">{answers.age}</span>
+                              <span className={`text-xs ${theme.textSecondary}`}>years old</span>
+                            </div>
+                          </div>
+
+                          {/* Tactile Stepper Buttons (Single-fire Pointer Events + 450ms hold delay) */}
+                          <div className="flex items-center gap-2.5">
+                            <button
+                              type="button"
+                              onPointerDown={(e) => {
+                                if (e.button !== 0 && e.pointerType === "mouse") return;
+                                e.preventDefault();
+                                playSensoryFeedback("tap");
+                                triggerMobileHaptic("light");
+                                startHold(() => setAnswers((p) => ({ ...p, age: Math.max(18, p.age - 1) })));
+                              }}
+                              onPointerUp={stopHold}
+                              onPointerLeave={stopHold}
+                              onPointerCancel={stopHold}
+                              onContextMenu={(e) => e.preventDefault()}
+                              aria-label="Decrease age"
+                              className="flex h-12 w-12 touch-none select-none items-center justify-center rounded-full border border-stone-300 bg-stone-100 text-[#121316] active:scale-95 active:bg-[#d9532f] active:text-white transition-all"
+                            >
+                              <svg className="h-4 w-4 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              onPointerDown={(e) => {
+                                if (e.button !== 0 && e.pointerType === "mouse") return;
+                                e.preventDefault();
+                                playSensoryFeedback("tap");
+                                triggerMobileHaptic("light");
+                                startHold(() => setAnswers((p) => ({ ...p, age: Math.min(75, p.age + 1) })));
+                              }}
+                              onPointerUp={stopHold}
+                              onPointerLeave={stopHold}
+                              onPointerCancel={stopHold}
+                              onContextMenu={(e) => e.preventDefault()}
+                              aria-label="Increase age"
+                              className="flex h-12 w-12 touch-none select-none items-center justify-center rounded-full border border-stone-300 bg-stone-100 text-[#121316] active:scale-95 active:bg-[#d9532f] active:text-white transition-all"
+                            >
+                              <svg className="h-4 w-4 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
 
-                        {/* Tactile Stepper Buttons (Principle 2: min 48x48dp target, optically centered) */}
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onMouseDown={() => startHold(() => setAnswers((p) => ({ ...p, age: Math.max(18, p.age - 1) })))}
-                            onMouseUp={stopHold}
-                            onMouseLeave={stopHold}
-                            onTouchStart={() => {
-                              triggerMobileHaptic("light");
-                              startHold(() => setAnswers((p) => ({ ...p, age: Math.max(18, p.age - 1) })));
-                            }}
-                            onTouchEnd={stopHold}
-                            aria-label="Decrease age"
-                            className="flex h-12 w-12 items-center justify-center rounded-full border border-stone-300 bg-stone-100 text-[#121316] active:bg-[#d9532f] active:text-white transition-colors"
-                          >
-                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
-                              <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                          </button>
-
-                          <button
-                            type="button"
-                            onMouseDown={() => startHold(() => setAnswers((p) => ({ ...p, age: Math.min(75, p.age + 1) })))}
-                            onMouseUp={stopHold}
-                            onMouseLeave={stopHold}
-                            onTouchStart={() => {
-                              triggerMobileHaptic("light");
-                              startHold(() => setAnswers((p) => ({ ...p, age: Math.min(75, p.age + 1) })));
-                            }}
-                            onTouchEnd={stopHold}
-                            aria-label="Increase age"
-                            className="flex h-12 w-12 items-center justify-center rounded-full border border-stone-300 bg-stone-100 text-[#121316] active:bg-[#d9532f] active:text-white transition-colors"
-                          >
-                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
-                              <line x1="12" y1="5" x2="12" y2="19" />
-                              <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                          </button>
+                        {/* Smooth Touch Slider for Age */}
+                        <div className="mt-2">
+                          <Knob
+                            min={18}
+                            max={75}
+                            value={answers.age}
+                            onChange={(val) => setAnswers((p) => ({ ...p, age: val }))}
+                            knobSize={34}
+                            fillClassName="bg-[#d9532f]"
+                            knobClassName="bg-[#121316]"
+                          />
+                          <div className="flex justify-between text-[11px] text-stone-400">
+                            <span>18 yrs</span>
+                            <span>46 yrs</span>
+                            <span>75 yrs</span>
+                          </div>
                         </div>
                       </div>
 

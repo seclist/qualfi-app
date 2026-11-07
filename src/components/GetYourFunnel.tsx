@@ -142,6 +142,7 @@ export function GetYourFunnel({
   const [direction, setDirection] = useState<1 | -1>(1);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     register,
@@ -202,15 +203,43 @@ export function GetYourFunnel({
     goToStep(3);
   };
 
-  const onSubmit = () => {
+  const onSubmit = async (values: EnquiryFormValues) => {
     playSensoryFeedback("success");
     triggerMobileHaptic("success");
+    setSubmitError(null);
     setIsCalculating(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/enquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...values,
+          device: idPrefix === "m" ? "Mobile" : "Desktop",
+        }),
+      });
+
+      const result = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+      };
+
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.error || "Unable to submit right now. Please try again."
+        );
+      }
+
       setIsCalculating(false);
       goToStep(4);
-    }, 550);
+    } catch (err) {
+      setIsCalculating(false);
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Unable to submit right now. Please try again."
+      );
+    }
   };
 
   const isFieldValid = (fieldName: "handle" | "name" | "whatsapp") => {

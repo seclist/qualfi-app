@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { EASING, playSensoryFeedback } from "@/lib/design-system";
+import { playSensoryFeedback, triggerMobileHaptic } from "@/lib/design-system";
 
 interface KnobProps {
   value: number;
@@ -16,12 +16,13 @@ interface KnobProps {
 }
 
 /**
- * Science-Backed Draggable Knob Component:
- * - Principle 5 (Target Scaling / Fitts's Law): Minimum 48px touch zone around handle.
- * - Principle 6 (Instant Feedback / Jakob Nielsen): Synchronous <50ms value dispatch.
- * - Principle 11 (Follow Through): Subtle spring settling upon pointer release.
- * - Principle 18 (Squash & Stretch / Disney): 12% horizontal elongation during active drag.
- * - Principle 30 (Speed Threshold / Doherty Threshold): Immediate tactile response.
+ * Science-Backed Draggable Knob / Slider Component:
+ * - Full-Track Pointer Capture: Touching or dragging anywhere inside the 56px
+ *   vertical hit zone immediately captures the finger and tracks smoothly.
+ * - Zero Scroll Conflict: `touch-none` prevents mobile browsers from hijacking
+ *   horizontal thumb movement as a vertical page scroll.
+ * - Throttled Tactile Feedback: Fires subtle haptic/audio ticks without blocking
+ *   the main UI thread.
  */
 export function Knob({
   value,
@@ -29,16 +30,18 @@ export function Knob({
   max,
   onChange,
   className = "",
-  fillClassName = "bg-[#b5654a]",
-  knobClassName = "bg-[#231d17]",
+  fillClassName = "bg-[#d9532f]",
+  knobClassName = "bg-[#121316]",
   knobSize = 32,
 }: KnobProps) {
   const track = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const x = useMotionValue(0);
   const fill = useTransform(x, (v) => Math.max(0, v + knobSize / 2));
   const valueRef = useRef(value);
   const lastEmittedValue = useRef(value);
+  const lastHapticTime = useRef(0);
 
   useEffect(() => {
     valueRef.current = value;
@@ -48,9 +51,10 @@ export function Knob({
     const el = track.current;
     if (!el) return;
     const updateSize = () => {
-      const w = el.offsetWidth - knobSize;
+      const w = Math.max(0, el.offsetWidth - knobSize);
       setWidth(w);
-      x.set(((valueRef.current - min) / (max - min)) * w);
+      const clampedVal = Math.max(min, Math.min(max, valueRef.current));
+      x.set(((clampedVal - min) / (max - min)) * w);
     };
 
     updateSize();
@@ -59,78 +63,127 @@ export function Knob({
     return () => ro.disconnect();
   }, [min, max, knobSize, x]);
 
-  // Sync position if external value changes without active drag
+  // Sync position when external value changes (e.g. via +/- stepper buttons)
   useEffect(() => {
-    if (width > 0) {
-      const targetX = ((value - min) / (max - min)) * width;
+    if (width > 0 && !isDragging) {
+      const clampedVal = Math.max(min, Math.min(max, value));
+      const targetX = ((clampedVal - min) / (max - min)) * width;
       x.set(targetX);
+      lastEmittedValue.current = clampedVal;
     }
-  }, [value, min, max, width, x]);
+  }, [value, min, max, width, isDragging, x]);
 
-  const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const updateFromClientX = (clientX: number, isInitialPress = false) => {
     const el = track.current;
-    if (!el || width <= 0) return;
+    if (!el) return;
     const rect = el.getBoundingClientRect();
-    const clickX = e.clientX - rect.left - knobSize / 2;
-    const clampedX = Math.max(0, Math.min(width, clickX));
-    const t = clampedX / width;
+    const usableWidth = Math.max(1, rect.width - knobSize);
+    const rawX = clientX - rect.left - knobSize / 2;
+    const clampedX = Math.max(0, Math.min(usableWidth, rawX));
+    const t = clampedX / usableWidth;
     const computed = Math.round(min + t * (max - min));
+
     x.set(clampedX);
-    lastEmittedValue.current = computed;
-    onChange(computed);
-    playSensoryFeedback("tap");
+
+    if (computed !== lastEmittedValue.current || isInitialPress) {
+      lastEmittedValue.current = computed;
+      onChange(computed);
+
+      const now = performance.now();
+      if (now - lastHapticTime.current > 55) {
+        lastHapticTime.current = now;
+        triggerMobileHaptic("light");
+        if (isInitialPress || computed % 2 === 0) {
+          playSensoryFeedback("tap");
+        }
+      }
+    }
   };
 
   return (
     <div
       ref={track}
-      onClick={handleTrackClick}
-      className={`relative touch-none select-none py-3 cursor-pointer ${className}`}
-      style={{ minHeight: 48 }} // Fitts's Law minimum 48px touch target
+      role="slider"
+      tabIndex={0}
+      aria-label="Adjust value"
+      aria-valuemin={min}
+      aria-valuemax={max}
+      aria-valuenow={value}
+      onPointerDown={(e) => {
+        if (e.button !== 0 && e.pointerType === "mouse") return;
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {
+          // Ignore if pointer capture is unsupported
+        }
+        setIsDragging(true);
+        updateFromClientX(e.clientX, true);
+      }}
+      onPointerMove={(e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        e.stopPropagation();
+        updateFromClientX(e.clientX, false);
+      }}
+      onPointerUp={(e) => {
+        if (!isDragging) return;
+        setIsDragging(false);
+        try {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId);
+          }
+        } catch {
+          // Ignore
+        }
+      }}
+      onPointerCancel={(e) => {
+        setIsDragging(false);
+        try {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId);
+          }
+        } catch {
+          // Ignore
+        }
+      }}
+      onKeyDown={(e) => {
+        let nextVal = value;
+        if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+          nextVal = Math.min(max, value + 1);
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+          nextVal = Math.max(min, value - 1);
+        } else if (e.key === "PageUp") {
+          nextVal = Math.min(max, value + 5);
+        } else if (e.key === "PageDown") {
+          nextVal = Math.max(min, value - 5);
+        } else if (e.key === "Home") {
+          nextVal = min;
+        } else if (e.key === "End") {
+          nextVal = max;
+        } else {
+          return;
+        }
+        e.preventDefault();
+        lastEmittedValue.current = nextVal;
+        onChange(nextVal);
+        playSensoryFeedback("tap");
+      }}
+      className={`relative touch-none select-none py-4 cursor-pointer outline-none ${className}`}
+      style={{ minHeight: 54 }}
     >
-      {/* Background Track Groove */}
-      <div className="absolute left-0 top-1/2 h-2 w-full -translate-y-1/2 rounded-full bg-[#231d17]/10" />
+      {/* Background Track Groove (12px tall for clear visual & tactile target) */}
+      <div className="pointer-events-none absolute left-0 top-1/2 h-3 w-full -translate-y-1/2 rounded-full bg-[#231d17]/12" />
 
       {/* Active Fill Track */}
       <motion.div
-        className={`absolute left-0 top-1/2 h-2 -translate-y-1/2 rounded-full ${fillClassName}`}
+        className={`pointer-events-none absolute left-0 top-1/2 h-3 -translate-y-1/2 rounded-full ${fillClassName}`}
         style={{ width: fill }}
       />
 
-      {/* Interactive Handle with 48px target zone, Squash & Stretch and Spring Follow-Through */}
+      {/* Interactive Handle */}
       <motion.div
-        role="slider"
-        tabIndex={0}
-        aria-label="Adjust value"
-        aria-valuemin={min}
-        aria-valuemax={max}
-        aria-valuenow={value}
-        onKeyDown={(e) => {
-          let nextVal = value;
-          if (e.key === "ArrowRight" || e.key === "ArrowUp") {
-            nextVal = Math.min(max, value + 1);
-          } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
-            nextVal = Math.max(min, value - 1);
-          } else if (e.key === "PageUp") {
-            nextVal = Math.min(max, value + 5);
-          } else if (e.key === "PageDown") {
-            nextVal = Math.max(min, value - 5);
-          } else if (e.key === "Home") {
-            nextVal = min;
-          } else if (e.key === "End") {
-            nextVal = max;
-          } else {
-            return;
-          }
-          e.preventDefault();
-          lastEmittedValue.current = nextVal;
-          onChange(nextVal);
-          playSensoryFeedback("tap");
-        }}
-        drag="x"
-        dragConstraints={{ left: 0, right: width }}
-        dragElastic={0.16} // Rubber-banding past bounds
-        dragMomentum={false}
         style={{
           x,
           width: knobSize,
@@ -138,34 +191,15 @@ export function Knob({
           top: "50%",
           marginTop: -knobSize / 2,
         }}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scaleY: 0.94, scaleX: 1.04 }} // Subtle press compression
-        whileDrag={{
-          scaleX: 1.12, // Exact 12% stretch during active drag (Principle 18)
-          scaleY: 0.92,
-          cursor: "grabbing",
+        animate={{
+          scaleX: isDragging ? 1.12 : 1,
+          scaleY: isDragging ? 0.94 : 1,
         }}
-        transition={{
-          duration: 0.16,
-          ease: EASING.naturalOut,
-        }}
-        onDragStart={() => playSensoryFeedback("tap")}
-        onDrag={() => {
-          const t = Math.max(0, Math.min(1, x.get() / (width || 1)));
-          const computed = Math.round(min + t * (max - min));
-          if (computed !== lastEmittedValue.current) {
-            lastEmittedValue.current = computed;
-            onChange(computed);
-            // Subtle click every 2kg for tactile auditory feedback (Principle 6)
-            if (computed % 2 === 0) {
-              playSensoryFeedback("tap");
-            }
-          }
-        }}
-        className={`absolute left-0 cursor-grab rounded-full shadow-lg ring-4 ring-white/80 focus-visible:ring-4 focus-visible:ring-[#d9532f] outline-none ${knobClassName}`}
+        transition={{ duration: 0.14 }}
+        className={`pointer-events-none absolute left-0 flex items-center justify-center rounded-full shadow-lg ring-4 ring-white ${knobClassName}`}
       >
-        {/* Invisible 48px Fitts's Law Touch Target */}
-        <span className="absolute -inset-2.5 rounded-full" />
+        {/* Subtle inner grip dot */}
+        <span className="h-2 w-2 rounded-full bg-white/90" />
       </motion.div>
     </div>
   );
