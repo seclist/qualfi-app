@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | qualfi",
-  description: "Terms and conditions of service for qualfi diagnostic micro-tools and custom bio funnels.",
+  title: "Terms of Service",
+  description:
+    "Terms and conditions of service for qualfi diagnostic micro-tools and custom bio funnels.",
+  alternates: {
+    canonical: "/terms",
+  },
 };
 
 export default function TermsPage() {

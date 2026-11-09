@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | qualfi",
-  description: "Privacy policy and data processing standards for qualfi diagnostic micro-tools.",
+  title: "Privacy Policy",
+  description:
+    "Privacy policy, GDPR/PECR compliance, and data processing standards for qualfi diagnostic micro-tools.",
+  alternates: {
+    canonical: "/privacy",
+  },
 };
 
 export default function PrivacyPage() {

@@ -723,14 +723,25 @@ export function GetYourFunnel({
                           <input
                             id={`${idPrefix}-enquire-handle`}
                             type="text"
+                            inputMode="text"
+                            autoComplete="username"
                             autoCapitalize="none"
                             autoCorrect="off"
+                            spellCheck={false}
+                            enterKeyHint="next"
                             placeholder="coachmaya"
                             aria-invalid={Boolean(errors.handle)}
                             aria-describedby={errors.handle ? `${idPrefix}-enquire-handle-error` : undefined}
                             {...register("handle", {
                               onChange: (e) => {
-                                e.target.value = e.target.value.replace(/^@+/, "");
+                                let v = String(e.target.value || "");
+                                // If user pasted a full Instagram profile URL, extract the handle
+                                v = v
+                                  .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+                                  .split(/[/?#]/)[0];
+                                // Strip @ symbols, whitespace (e.g. iOS period+space), and lowercase
+                                v = v.replace(/[@\s]+/g, "").toLowerCase();
+                                e.target.value = v;
                               },
                             })}
                             className="w-full bg-transparent py-3 text-base font-medium text-[#121316] outline-none placeholder:text-stone-400"
@@ -804,6 +815,10 @@ export function GetYourFunnel({
                             id={`${idPrefix}-enquire-name`}
                             type="text"
                             autoComplete="name"
+                            autoCapitalize="words"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            enterKeyHint="next"
                             placeholder="Maya Lin"
                             aria-invalid={Boolean(errors.name)}
                             aria-describedby={errors.name ? `${idPrefix}-enquire-name-error` : undefined}
@@ -870,10 +885,21 @@ export function GetYourFunnel({
                             type="tel"
                             inputMode="tel"
                             autoComplete="tel"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            enterKeyHint="done"
                             placeholder="+44 7911 123456"
                             aria-invalid={Boolean(errors.whatsapp)}
                             aria-describedby={errors.whatsapp ? `${idPrefix}-enquire-whatsapp-error` : undefined}
-                            {...register("whatsapp")}
+                            {...register("whatsapp", {
+                              onChange: (e) => {
+                                // Strip invisible iOS Contacts/WhatsApp directional Unicode markers & normalize spaces
+                                e.target.value = String(e.target.value || "")
+                                  .replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g, "")
+                                  .replace(/\u00A0/g, " ");
+                              },
+                            })}
                             className="w-full bg-transparent py-3 text-base font-medium text-[#121316] outline-none placeholder:text-stone-400"
                           />
 
