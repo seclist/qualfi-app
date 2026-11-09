@@ -8,11 +8,46 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/terms",
   },
+  openGraph: {
+    title: "Terms of Service | qualfi",
+    description:
+      "Terms and conditions of service for qualfi diagnostic micro-tools and custom bio funnels.",
+    url: "https://www.qualfi.app/terms",
+    type: "website",
+  },
+};
+
+const termsBreadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: "https://www.qualfi.app",
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Terms of Service",
+      item: "https://www.qualfi.app/terms",
+    },
+  ],
 };
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#faf7f2] px-6 py-16 sm:py-24 text-[#121316] font-sans selection:bg-[#d9532f] selection:text-white">
+    <main
+      id="main-content"
+      className="min-h-screen bg-[#faf7f2] px-6 py-16 sm:py-24 text-[#121316] font-sans selection:bg-[#d9532f] selection:text-white"
+    >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(termsBreadcrumbJsonLd),
+        }}
+      />
       <div className="mx-auto max-w-2xl">
         {/* Navigation & Brand */}
         <div className="mb-12 flex items-center justify-between border-b border-stone-200/80 pb-6">
@@ -108,13 +143,23 @@ export default function TermsPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-14 border-t border-stone-200/80 pt-6 text-xs text-[#52555f] flex items-center justify-between">
+        <footer className="mt-14 border-t border-stone-200/80 pt-6 text-xs text-[#52555f] flex flex-wrap items-center justify-between gap-4">
           <span>qualfi © 2026 · All rights reserved</span>
-          <Link href="/" className="font-semibold text-[#d9532f] hover:underline">
-            Return to Homepage
-          </Link>
-        </div>
+          <div className="flex items-center gap-4">
+            <a
+              href="https://www.instagram.com/qualfiapp/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#d9532f] transition-colors"
+            >
+              @qualfiapp
+            </a>
+            <Link href="/" className="font-semibold text-[#d9532f] hover:underline">
+              Return to Homepage
+            </Link>
+          </div>
+        </footer>
       </div>
-    </div>
+    </main>
   );
 }

@@ -622,7 +622,7 @@ export function MobileLandingPage() {
         )}
       </AnimatePresence>
 
-      <main>
+      <div id="mobile-main-content" role="region" aria-label="Mobile experience">
         {/* ==================================================================== */}
         {/* MOBILE HERO SECTION (PRINCIPLES 1, 3, 4, 16)                          */}
         {/* ==================================================================== */}
@@ -637,12 +637,12 @@ export function MobileLandingPage() {
           </div>
 
           {/* Headline (Principle 16: Obvious Hierarchy) */}
-          <h1 className="mt-4 font-sans font-black text-3xl tracking-tight leading-[1.12]">
+          <h2 className="mt-4 font-sans font-black text-3xl tracking-tight leading-[1.12]">
             Make your bio do the{" "}
             <span className="font-serif italic font-normal text-[#d9532f]">
               heavy lifting.
             </span>
-          </h1>
+          </h2>
 
           {/* Subtitle (Principle 3: Legible Typography >= 16px) */}
           <p className={`mt-3 text-base leading-relaxed ${theme.textSecondary}`}>
@@ -1477,7 +1477,7 @@ export function MobileLandingPage() {
             qualfi
           </div>
         </footer>
-      </main>
+      </div>
 
       {/* ====================================================================== */}
       {/* PRINCIPLES 1, 10, 16 VISUAL: REWORKED ULTRA-SMOOTH MOBILE BOTTOM NAV   */}

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Qualfi 3-Post Instagram Banner — Website Theme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  html, body {
+    width: 3240px;
+    height: 1350px;
+    overflow: hidden;
+    background: #faf7f2;
+    color: #121316;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .serif {
+    font-family: 'Fraunces', Georgia, serif;
+  }
+  .canvas {
+    position: relative;
+    width: 3240px;
+    height: 1350px;
+    background-color: #faf7f2;
+    background-size: 48px 48px;
+    background-image:
+      linear-gradient(to right, rgba(18, 19, 22, 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(18, 19, 22, 0.035) 1px, transparent 1px);
+    display: grid;
+    grid-template-columns: 1080px 1080px 1080px;
+  }
+
+  /* Ambient Website Radial Glows */
+  .glow-terracotta-center {
+    position: absolute;
+    top: -120px;
+    left: 1020px;
+    width: 1200px;
+    height: 750px;
+    border-radius: 9999px;
+    background: radial-gradient(ellipse at center, rgba(217, 83, 47, 0.13), transparent 70%);
+    filter: blur(45px);
+    pointer-events: none;
+  }
+  .glow-terracotta-left {
+    position: absolute;
+    bottom: 60px;
+    left: 180px;
+    width: 760px;
+    height: 680px;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgba(217, 83, 47, 0.09), transparent 68%);
+    filter: blur(50px);
+    pointer-events: none;
+  }
+  .glow-emerald-right {
+    position: absolute;
+    top: 160px;
+    right: 140px;
+    width: 820px;
+    height: 740px;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.11), transparent 68%);
+    filter: blur(50px);
+    pointer-events: none;
+  }
+
+  /* Continuous Topographic SVG Layer */
+  .topo-svg {
+    position: absolute;
+    inset: 0;
+    width: 3240px;
+    height: 1350px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Continuous Flow Connector Line across all 3 tiles */
+  .flow-line {
+    position: absolute;
+    top: 845px;
+    left: 140px;
+    right: 140px;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(18,19,22,0.10) 0%, #d9532f 28%, #d9532f 52%, #10b981 78%, rgba(16,185,129,0.15) 100%);
+    z-index: 2;
+  }
+
+  /* Floating Metric Badges (Website Hero Style — Inside Tile Safe Zones) */
+  .float-pill {
+    position: absolute;
+    z-index: 30;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1.5px solid rgba(214, 211, 209, 0.95);
+    border-radius: 999px;
+    padding: 11px 22px;
+    box-shadow: 0 14px 32px rgba(18, 19, 22, 0.08);
+    font-size: 18px;
+    font-weight: 800;
+    color: #121316;
+    white-space: nowrap;
+  }
+  .dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 999px;
+    display: inline-block;
+  }
+  .dot-terra { background: #d9532f; box-shadow: 0 0 0 5px rgba(217, 83, 47, 0.18); }
+  .dot-emerald { background: #10b981; box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.20); }
+  .dot-slate { background: #121316; }
+
+  /* Tile Columns */
+  .tile {
+    position: relative;
+    z-index: 10;
+    width: 1080px;
+    height: 1350px;
+    padding: 78px 86px 72px 86px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Top Mini Navigation / Step Pill */
+  .top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .step-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1.5px solid rgba(18, 19, 22, 0.09);
+    border-radius: 999px;
+    padding: 10px 22px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #52555f;
+    box-shadow: 0 8px 22px rgba(18, 19, 22, 0.04);
+  }
+  .brand-pill-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1.5px solid rgba(18, 19, 22, 0.09);
+    border-radius: 999px;
+    padding: 14px 28px;
+    box-shadow: 0 14px 36px rgba(18, 19, 22, 0.06);
+  }
+  .logo-word {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #121316;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .logo-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 999px;
+    background: #d9532f;
+    display: inline-block;
+    margin-top: 6px;
+  }
+
+  /* Headlines */
+  .headline {
+    font-size: 70px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    color: #121316;
+    margin-top: 26px;
+  }
+  .headline-center {
+    font-size: 76px;
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    color: #121316;
+    text-align: center;
+    margin-top: 24px;
+  }
+  .accent-serif {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: #d9532f;
+  }
+  .accent-emerald {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    color: #047857;
+  }
+  .subcopy {
+    font-size: 26px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: #52555f;
+    margin-top: 18px;
+  }
+
+  /* Website White Cards */
+  .web-card {
+    background: rgba(255, 255, 255, 0.96);
+    border: 2px solid rgba(18, 19, 22, 0.08);
+    border-radius: 36px;
+    padding: 38px;
+    box-shadow: 0 24px 60px rgba(18, 19, 22, 0.07);
+    position: relative;
+  }
+
+  /* Tile 1 Card Items */
+  .dead-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #faf7f2;
+    border: 1.5px solid rgba(18, 19, 22, 0.07);
+    border-radius: 22px;
+    padding: 22px 28px;
+    margin-bottom: 16px;
+  }
+  .dead-row:last-child {
+    margin-bottom: 0;
+  }
+  .dead-title {
+    font-size: 25px;
+    font-weight: 700;
+    color: #52555f;
+    text-decoration: line-through;
+    text-decoration-color: #d9532f;
+    text-decoration-thickness: 3px;
+  }
+  .dead-stat {
+    background: rgba(217, 83, 47, 0.12);
+    color: #b83e1d;
+    font-size: 19px;
+    font-weight: 800;
+    padding: 8px 18px;
+    border-radius: 999px;
+  }
+
+  /* Tile 2 Center Coach Maya Diagnostic Card (Directly from DesktopLandingPage.tsx) */
+  .maya-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1.5px solid rgba(18, 19, 22, 0.08);
+    padding-bottom: 22px;
+    margin-bottom: 24px;
+  }
+  .maya-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    background: #d9532f;
+    color: #ffffff;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: 26px;
+    display: grid;
+    place-items: center;
+  }
+  .complete-badge {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+    font-size: 19px;
+    font-weight: 800;
+    padding: 8px 20px;
+    border-radius: 999px;
+  }
+  .macro-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  .macro-box {
+    border-radius: 24px;
+    padding: 20px 16px;
+    text-align: center;
+  }
+  .macro-val {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .macro-lbl {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  /* Tile 3 WhatsApp Lead Dossier Card */
+  .wa-card {
+    background: #ffffff;
+    border: 2px solid rgba(16, 185, 129, 0.28);
+    border-radius: 36px;
+    padding: 36px;
+    box-shadow: 0 24px 60px rgba(18, 19, 22, 0.07);
+  }
+  .wa-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #1f2c34;
+    color: #ffffff;
+    border-radius: 22px;
+    padding: 18px 24px;
+    margin-bottom: 22px;
+  }
+  .wa-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #00a884, #25d366);
+    display: grid;
+    place-items: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: #ffffff;
+  }
+  .intent-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #faf7f2;
+    border: 1.5px solid rgba(18, 19, 22, 0.08);
+    border-radius: 22px;
+    padding: 20px 26px;
+    margin-bottom: 18px;
+  }
+
+  /* Bottom Bar inside each tile */
+  .footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+  }
+  .cta-dark {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #121316;
+    color: #ffffff;
+    font-size: 21px;
+    font-weight: 700;
+    padding: 18px 34px;
+    border-radius: 999px;
+    box-shadow: 0 10px 25px rgba(18, 19, 22, 0.14);
+  }
+  .cta-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff;
+    color: #121316;
+    border: 2px solid rgba(18, 19, 22, 0.15);
+    font-size: 21px;
+    font-weight: 700;
+    padding: 16px 30px;
+    border-radius: 999px;
+  }
+</style>
+</head>
+<body>
+  <div class="canvas">
+    <!-- Ambient Radial Glows from Website -->
+    <div class="glow-terracotta-center"></div>
+    <div class="glow-terracotta-left"></div>
+    <div class="glow-emerald-right"></div>
+
+    <!-- Athletic Topographic Elevation Contours Spanning All 3 Tiles -->
+    <svg class="topo-svg" viewBox="0 0 3240 1350" preserveAspectRatio="none">
+      <path d="M-100 240 C 520 110, 1080 390, 1680 230 C 2280 90, 2750 340, 3340 190"
+            fill="none" stroke="#121316" stroke-width="2" stroke-dasharray="8 14" opacity="0.18" />
+      <path d="M-100 490 C 640 310, 1220 620, 1890 410 C 2460 240, 2880 470, 3340 360"
+            fill="none" stroke="#d9532f" stroke-width="2.5" opacity="0.28" />
+      <path d="M-100 760 C 540 610, 1180 880, 1790 700 C 2390 530, 2840 740, 3340 640"
+            fill="none" stroke="#121316" stroke-width="1.8" opacity="0.13" />
+      <path d="M-100 1040 C 720 880, 1420 1140, 2120 960 C 2660 820, 2980 1010, 3340 910"
+            fill="none" stroke="#10b981" stroke-width="2.2" stroke-dasharray="10 16" opacity="0.26" />
+    </svg>
+
+    <!-- Continuous Horizontal Flow Line -->
+    <div class="flow-line"></div>
+
+    <!-- Floating Website Metric Pills (Positioned cleanly inside each tile's safe bounds) -->
+    <div class="float-pill" style="left: 690px; top: 538px;">
+      <span class="dot dot-slate"></span>
+      <span>Calculates Custom Macros</span>
+    </div>
+    <div class="float-pill" style="left: 1715px; top: 528px;">
+      <span class="dot dot-terra"></span>
+      <span>94/100 Purchase Intent</span>
+    </div>
+    <div class="float-pill" style="left: 2790px; top: 538px;">
+      <span class="dot dot-emerald"></span>
+      <span>Lead sent in 2 seconds</span>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TILE 1 (LEFT): THE PROBLEM                                         -->
+    <!-- ================================================================== -->
+    <div class="tile">
+      <div>
+        <div class="top-row">
+          <div class="step-tag">
+            <span class="dot dot-terra"></span>
+            <span>01 / The Old Bio Link</span>
+          </div>
+          <span style="font-size: 20px; font-weight: 800; color: #d9532f;">qualfi.</span>
+        </div>
+
+        <h2 class="headline">
+          Kill your dead<br />
+          <span class="accent-serif">Linktree &amp; forms.</span>
+        </h2>
+        <p class="subcopy">
+          Static contact forms and “DM me READY” lose 86% of your warm fitness traffic before you ever reply.
+        </p>
+      </div>
+
+      <!-- White Website Comparison Card -->
+      <div class="web-card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 22px;">
+          <span style="font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #52555f;">
+            Why Traditional Bio Links Fail
+          </span>
+          <span style="font-size: 18px; font-weight: 800; color: #d9532f;">✕ High Drop-Off</span>
+        </div>
+
+        <div class="dead-row">
+          <span class="dead-title">Generic Linktree / Beacons Menu</span>
+          <span class="dead-stat">14% Tap Rate</span>
+        </div>
+        <div class="dead-row">
+          <span class="dead-title">15-Question Static Google Form</span>
+          <span class="dead-stat">Zero Value Given</span>
+        </div>
+        <div class="dead-row">
+          <span class="dead-title">“DM Me READY” + 18hr Email Wait</span>
+          <span class="dead-stat">Lead Goes Cold</span>
+        </div>
+      </div>
+
+      <div class="footer-row">
+        <span style="font-size: 20px; font-weight: 700; color: #52555f;">Stop chasing cold DMs</span>
+        <div class="cta-outline">Swipe for the fix →</div>
+      </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TILE 2 (CENTER): WEBSITE HERO & MACRO ENGINE                       -->
+    <!-- ================================================================== -->
+    <div class="tile">
+      <div>
+        <!-- Exact Website Floating Pill Header -->
+        <div class="brand-pill-nav">
+          <div class="logo-word">
+            <span>qualfi</span>
+            <span class="logo-dot"></span>
+          </div>
+          <div style="display:flex; gap: 28px; font-size: 19px; font-weight: 700; color: #52555f;">
+            <span>Live Demo</span>
+            <span>60s Macro Engine</span>
+          </div>
+          <div style="background:#121316; color:#fff; padding: 10px 22px; border-radius:999px; font-size:18px; font-weight:700;">
+            Get Your Funnel →
+          </div>
+        </div>
+
+        <h1 class="headline-center">
+          Make your bio do the<br />
+          <span class="accent-serif">heavy lifting.</span>
+        </h1>
+        <p class="subcopy" style="text-align: center; max-width: 820px; margin-left: auto; margin-right: auto;">
+          Give followers custom calories, macros &amp; training splits in 60 seconds.
+        </p>
+      </div>
+
+      <!-- Exact Coach Maya Deliverable Card from DesktopLandingPage.tsx -->
+      <div class="web-card" style="border-color: rgba(217, 83, 47, 0.22);">
+        <div class="maya-header">
+          <div style="display:flex; align-items:center; gap: 16px;">
+            <div class="maya-avatar">M</div>
+            <div>
+              <div style="font-size: 24px; font-weight: 800; color: #121316;">Coach Maya</div>
+              <div style="font-size: 19px; font-weight: 600; color: #52555f;">60-Second Macro &amp; Split Diagnostic</div>
+            </div>
+          </div>
+          <span class="complete-badge">✓ Complete</span>
+        </div>
+
+        <div style="text-align: center;">
+          <div style="font-size: 17px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #047857;">
+            Your Daily Fuel Target
+          </div>
+          <div class="serif" style="font-size: 68px; font-weight: 400; color: #121316; line-height: 1.08; margin-top: 4px;">
+            2,420 <span class="accent-serif" style="font-size: 34px;">kcal</span>
+          </div>
+        </div>
+
+        <div class="macro-grid">
+          <div class="macro-box" style="background: #f4d3c4; color: #121316;">
+            <div class="macro-val">140g</div>
+            <div class="macro-lbl" style="color: #44403c;">Protein</div>
+          </div>
+          <div class="macro-box" style="background: #d8e5db; color: #121316;">
+            <div class="macro-val">323g</div>
+            <div class="macro-lbl" style="color: #44403c;">Carbs</div>
+          </div>
+          <div class="macro-box" style="background: #d9532f; color: #ffffff;">
+            <div class="macro-val">63g</div>
+            <div class="macro-lbl" style="color: rgba(255,255,255,0.92);">Dietary Fat</div>
+          </div>
+        </div>
+
+        <div style="background:#faf7f2; border: 1.5px solid rgba(18,19,22,0.08); border-radius: 20px; padding: 16px 24px; display:flex; align-items:center; justify-content:space-between;">
+          <span style="font-size: 21px; font-weight: 700; color: #121316;">
+            <span style="color: #047857; font-weight: 800;">Optimal Split:</span> Push · Pull · Legs
+          </span>
+          <span style="font-size: 19px; font-weight: 600; color: #52555f;">4 sessions / week</span>
+        </div>
+      </div>
+
+      <div class="footer-row" style="justify-content: center;">
+        <div class="cta-dark">Try the live demo in bio ↓</div>
+      </div>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- TILE 3 (RIGHT): < 2S WHATSAPP DISPATCH & 0-100 LEAD SCORE          -->
+    <!-- ================================================================== -->
+    <div class="tile">
+      <div>
+        <div class="top-row">
+          <div class="step-tag">
+            <span class="dot dot-emerald"></span>
+            <span>03 / Instant Handshake</span>
+          </div>
+          <span style="font-size: 20px; font-weight: 800; color: #047857;">&lt; 2s Webhook</span>
+        </div>
+
+        <h2 class="headline">
+          Scored buyers on<br />
+          <span class="accent-emerald">WhatsApp in 2s.</span>
+        </h2>
+        <p class="subcopy">
+          Every prospect is scored 0–100 on purchase intent and routed to your phone while they’re still on screen.
+        </p>
+      </div>
+
+      <!-- WhatsApp Dossier Card on Light Website Theme -->
+      <div class="wa-card">
+        <div class="wa-top">
+          <div style="display:flex; align-items:center; gap: 16px;">
+            <div class="wa-avatar">Q</div>
+            <div>
+              <div style="font-size: 22px; font-weight: 800;">Qualfi Lead Dispatch</div>
+              <div style="font-size: 17px; color: #25d366; font-weight: 600;">● Verified WhatsApp Webhook • 1.4s</div>
+            </div>
+          </div>
+          <span style="background: rgba(37,211,102,0.18); color: #25d366; font-size: 17px; font-weight: 800; padding: 8px 16px; border-radius: 999px;">
+            HOT LEAD
+          </span>
+        </div>
+
+        <div class="intent-banner">
+          <div>
+            <div style="font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #52555f;">
+              Algorithmic Purchase Intent
+            </div>
+            <div class="serif" style="font-size: 52px; font-weight: 700; color: #d9532f; line-height: 1.05; margin-top: 4px;">
+              94 / 100
+            </div>
+          </div>
+          <div style="background: #d8e5db; color: #047857; font-size: 19px; font-weight: 800; padding: 12px 22px; border-radius: 999px;">
+            Ready This Week
+          </div>
+        </div>
+
+        <div style="background: #faf7f2; border: 1.5px solid rgba(18,19,22,0.07); border-radius: 20px; padding: 18px 24px; font-size: 21px; line-height: 1.5; color: #121316; font-weight: 600;">
+          <div><b>Prospect:</b> Marcus V. • 84kg • 4x/wk P·P·L</div>
+          <div style="color: #52555f; margin-top: 4px;"><b>Struggle:</b> 6-mo plateau • <b>Unlocked:</b> 2,420 kcal</div>
+        </div>
+      </div>
+
+      <div class="footer-row">
+        <span style="font-size: 20px; font-weight: 700; color: #047857;">● Zero cold tire-kickers</span>
+        <div class="cta-dark" style="background: #d9532f;">Get your funnel →</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

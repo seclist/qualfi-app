@@ -1,0 +1,21 @@
+# qualfi
+
+> qualfi builds bespoke, branded 60-second diagnostic micro-tools for fitness coaches and personal trainers, replacing dead Linktrees, static Google Forms, and passive "DM me READY" calls-to-action with instant personalized calorie/macro deliverables, 0–100 algorithmic lead pre-qualification, and <2s WhatsApp lead routing.
+
+## Core Capabilities
+- **60-Second Interactive Value Exchange**: Calculates calibrated Mifflin-St Jeor daily caloric targets (TDEE/BMR), macronutrient breakdowns (protein, carbs, fats in grams), and optimal training splits (Push·Pull·Legs, Upper/Lower, Full Body) in real time.
+- **0–100 Algorithmic Lead Pre-Qualification**: Automatically scores every prospect on purchase intent based on coaching goal, training availability, primary obstacle, and commitment timeline.
+- **Instant <2s WhatsApp Lead Routing**: Dispatches high-intent verified leads directly to the coach's WhatsApp or phone within 2 seconds while buyer motivation is at its peak.
+- **72-Hour Custom Build & Turnaround**: Designed, branded, and deployed as a standalone social bio link (`qualfi.com/@handle`) or website embed within 72 hours.
+
+## Primary Links
+- [Homepage & Live 60-Second Interactive Demo](https://www.qualfi.app/)
+- [Commission Your Custom Bio Funnel](https://www.qualfi.app/#funnel)
+- [Full System Documentation for AI Models](https://www.qualfi.app/llms-full.txt)
+- [Privacy Policy (GDPR / PECR / CCPA)](https://www.qualfi.app/privacy)
+- [Terms of Service](https://www.qualfi.app/terms)
+- [Instagram (@qualfiapp)](https://www.instagram.com/qualfiapp/)
+
+## Contact
+- Email: hello@qualfi.com
+- Instagram: https://www.instagram.com/qualfiapp/

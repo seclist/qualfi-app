@@ -1,0 +1,31 @@
+# qualfi — Complete System & Product Reference
+
+## 1. Mission & Problem Statement
+Traditional fitness coaching websites, Linktrees, Stan Stores, and static "Apply Here" Google Forms fail because they force prospects to read walls of text and fill out cold forms, only to wait hours or days for a reply. Over 80% of warm social media profile visitors bounce without inquiring.
+
+qualfi replaces passive bio links and "DM me READY" posts with a bespoke 60-second interactive diagnostic micro-tool calibrated to each coach's methodology and aesthetic.
+
+## 2. How the 60-Second Fitness Diagnostic Works
+1. **Curiosity Hook**: A prospect taps the coach's Instagram or TikTok bio link (`qualfi.com/@coach`).
+2. **Interactive Diagnostic (60 Seconds)**:
+   - Primary Goal: Fat Loss, Lean Muscle & Strength, or Body Recomposition
+   - Biometrics: Current Bodyweight (kg) & Age
+   - Training Availability: 2 to 6 sessions per week
+   - Primary Obstacle: Diet consistency, progress plateau, busy schedule, or metabolic slowdown
+   - Commitment Timeline: Ready this week, this month, or exploring
+3. **Contact Gate**: To unlock their custom nutrition & training blueprint, the prospect submits their name and WhatsApp/mobile number.
+4. **Instant Deliverables & <2s Coach Handshake**:
+   - The prospect immediately unlocks their calibrated daily calories (Mifflin-St Jeor BMR × activity multiplier), protein/carbohydrate/fat gram targets, optimal weekly split, and downloadable PDF blueprint.
+   - Simultaneously, the coach receives a verified lead dispatch on WhatsApp in under 2 seconds, complete with a 0–100 Buyer Intent Score.
+
+## 3. Target Specialties Supported
+- Fat Loss & Body Recomposition Coaches
+- Strength & Hypertrophy Coaches
+- Hyrox & Hybrid Performance Coaches
+- Executive & Busy Professional Fitness Coaches
+
+## 4. Turnaround & Contact
+- Delivery Time: Custom designed, branded, and live in 72 hours.
+- Website: https://www.qualfi.app
+- Email: hello@qualfi.com
+- Instagram: https://www.instagram.com/qualfiapp/

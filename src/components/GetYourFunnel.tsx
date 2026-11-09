@@ -334,11 +334,10 @@ export function GetYourFunnel({
               <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-stone-200/90 shadow-xs bg-[#121316]">
                 <Image
                   src="/logos/qualfi-monogram-dark.svg"
-                  alt="qualfi"
+                  alt="qualfi — custom 60-second bio diagnostic funnel for fitness coaches"
                   width={36}
                   height={36}
                   className="h-full w-full object-cover"
-                  priority
                 />
               </div>
               <div className="text-xs leading-tight">
