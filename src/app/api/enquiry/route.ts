@@ -382,6 +382,8 @@ export async function POST(request: Request) {
         redirect: "follow",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
+          spreadsheetId:
+            spreadsheetId || "1I2ug5RMnZ1H8PoJ5Ejf7fyt5lXYWv78oC5JdzO7ChVY",
           sheetName: "Inbound",
           row: rowValues,
         }),
