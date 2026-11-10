@@ -8,6 +8,11 @@
 - **Instant <2s WhatsApp Lead Routing**: Dispatches high-intent verified leads directly to the coach's WhatsApp or phone within 2 seconds while buyer motivation is at its peak.
 - **72-Hour Custom Build & Turnaround**: Designed, branded, and deployed as a standalone social bio link (`qualfi.com/@handle`) or website embed within 72 hours.
 
+## Pricing
+- **Founding Partner Offer (First 25 Coaches)**: £99 one-time setup fee (normally £299).
+- **Zero Subscriptions**: £0/month recurring software fees. Full custom build, Mifflin-St Jeor calibration, domain link, and WhatsApp webhook integration included.
+- **Zero Risk**: £0 upfront payment required to commission a custom preview. Coaches only pay once their working preview is delivered and approved.
+
 ## Primary Links
 - [Homepage & Live 60-Second Interactive Demo](https://www.qualfi.app/)
 - [Commission Your Custom Bio Funnel](https://www.qualfi.app/#funnel)

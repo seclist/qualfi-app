@@ -191,6 +191,14 @@ const jsonLdSchema = {
       },
       description:
         "Custom-designed, branded 60-second macro & training split diagnostic tools deployed to your Instagram or TikTok bio within 72 hours, featuring 0–100 lead scoring and <2s WhatsApp lead dispatch.",
+      offers: {
+        "@type": "Offer",
+        price: "99.00",
+        priceCurrency: "GBP",
+        description:
+          "Founding Partner Setup — £99 one-time payment for full bespoke diagnostic build and deployment. Zero monthly subscription, ever.",
+        availability: "https://schema.org/LimitedAvailability",
+      },
     },
     {
       "@type": "SoftwareApplication",
@@ -280,6 +288,14 @@ const jsonLdSchema = {
           acceptedAnswer: {
             "@type": "Answer",
             text: "Yes. Every qualfi build operates both as an ultra-fast standalone bio link (qualfi.com/@handle) for Instagram, TikTok, and YouTube, and as a frictionless embed inside your existing coaching website or client portal.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How much does a custom qualfi bio diagnostic cost, and are there monthly subscriptions?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "There are zero monthly software subscriptions or recurring platform fees. Through our Founding Partner cohort (first 25 coaches), full bespoke build, custom branding, domain configuration, and WhatsApp integration is a one-time £99 fee (normally £299). You pay nothing upfront until you review and approve your working preview.",
           },
         },
       ],

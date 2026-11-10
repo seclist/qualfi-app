@@ -270,11 +270,13 @@ export function GetYourFunnel({
         <>
           <div id="build" className="absolute -top-12 left-0 h-0 w-0 pointer-events-none" />
           <div id="enquire" className="absolute -top-12 left-0 h-0 w-0 pointer-events-none" />
+          <div id="pricing" className="absolute -top-12 left-0 h-0 w-0 pointer-events-none" />
         </>
       ) : (
         <>
           <div id="mobile-build" className="absolute -top-12 left-0 h-0 w-0 pointer-events-none" />
           <div id="mobile-enquire" className="absolute -top-12 left-0 h-0 w-0 pointer-events-none" />
+          <div id="mobile-pricing" className="absolute -top-12 left-0 h-0 w-0 pointer-events-none" />
         </>
       )}
 
@@ -292,20 +294,119 @@ export function GetYourFunnel({
           className="text-left sm:text-center"
         >
           <span className="inline-block text-xs font-bold uppercase tracking-[0.22em] text-[#d9532f]">
-            Ready In 72 Hours
+            Founding Partner Pricing · 72h Turnaround
           </span>
 
           <h2 className="mt-3 font-serif text-4xl font-light tracking-tight text-[#121316] sm:text-5xl leading-[1.04]">
-            Get your custom <span className="italic font-normal text-[#d9532f]">bio funnel.</span>
+            Transparent pricing. <span className="italic font-normal text-[#d9532f]">Zero subscriptions.</span>
           </h2>
 
           <p className="mt-3 text-sm sm:text-base text-[#52555f] leading-relaxed font-sans">
-            Tap through 4 quick steps below. We design, brand, and build your custom 60-second tool ready for your bio in 72 hours.
+            No recurring monthly software bills. We design, brand, and build your custom 60-second diagnostic tool for a one-time setup fee.
           </p>
+        </motion.div>
+
+        {/* Founding Cohort Pricing Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5, delay: 0.05, ease: EASING.naturalOut }}
+          className="mt-6 rounded-3xl border-2 border-[#d9532f]/25 bg-gradient-to-b from-white to-[#faf7f2]/60 p-5 sm:p-7 shadow-[0_15px_40px_rgba(217,83,47,0.05)] relative overflow-hidden"
+        >
+          {/* Subtle Glow */}
+          <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#d9532f]/10 blur-2xl" />
+
+          {/* Tier Label & Spots Left */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/80 pb-3.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#d9532f]/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#d9532f]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#d9532f]" />
+              Founding Partner Offer
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#047857] border border-emerald-200/60">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              </span>
+              First 25 Coaches · 18 Left
+            </span>
+          </div>
+
+          {/* Price Numbers */}
+          <div className="mt-5 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
+            <div>
+              <div className="flex items-baseline gap-2.5">
+                <span className="font-serif text-5xl sm:text-6xl font-light text-[#121316] tracking-tight">
+                  £99
+                </span>
+                <span className="text-lg font-semibold text-stone-400 line-through">
+                  £299
+                </span>
+                <span className="rounded-full bg-[#10b981]/15 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-[#047857]">
+                  Save £200
+                </span>
+              </div>
+              <p className="mt-1 text-xs sm:text-sm font-semibold text-[#121316]">
+                One-time full setup · Absolutely zero subscription, forever
+              </p>
+            </div>
+            <div className="text-left sm:text-right">
+              <span className="inline-block rounded-full border border-stone-200/80 bg-white px-3 py-1 text-[11px] font-medium text-[#52555f] shadow-2xs">
+                72h Turnaround
+              </span>
+            </div>
+          </div>
+
+          {/* Deliverables Checklist */}
+          <div className="mt-5 border-t border-stone-200/80 pt-4">
+            <span className="block text-[11px] font-bold uppercase tracking-wider text-[#52555f] mb-2.5">
+              Everything Included in Your £99 Setup:
+            </span>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#121316]">
+              <li className="flex items-start gap-2">
+                <span className="text-[#047857] font-bold shrink-0">✓</span>
+                <span>Bespoke 60s diagnostic micro-tool</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#047857] font-bold shrink-0">✓</span>
+                <span>0–100 purchase intent algorithm</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#047857] font-bold shrink-0">✓</span>
+                <span>&lt;2s instant WhatsApp lead dispatch</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#047857] font-bold shrink-0">✓</span>
+                <span>Mifflin-St Jeor calories &amp; split engine</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#047857] font-bold shrink-0">✓</span>
+                <span>Bio link (qualfi.com/@you) &amp; embed</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#047857] font-bold shrink-0">✓</span>
+                <span>1-on-1 brand styling &amp; copy calibration</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#047857] font-bold shrink-0">✓</span>
+                <span>Ready to link in your bio in 72 hours</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-[#047857] font-bold shrink-0">✓</span>
+                <span className="font-bold text-[#d9532f]">£0 monthly software subscriptions</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Zero-Risk Reassurance Banner */}
+          <div className="mt-5 rounded-2xl border border-stone-200/80 bg-[#faf7f2] p-3.5 text-xs text-[#52555f]">
+            <b className="text-[#121316]">Zero Upfront Payment:</b> Complete the 4 questions below to lock in your £99 founding rate. We build and text your working preview before you pay a single penny.
+          </div>
         </motion.div>
 
         {/* Main Card */}
         <motion.div
+          id="funnel-form"
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
@@ -1031,6 +1132,12 @@ export function GetYourFunnel({
                         transition={{ delay: 0.16 }}
                         className="pt-2"
                       >
+                        {/* Founding Rate Locked Banner */}
+                        <div className="mb-3 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2 text-xs text-[#047857]">
+                          <span className="font-bold">✓ Founding Rate Locked: £99 One-Time</span>
+                          <span className="text-[11px] font-medium text-[#52555f]">£0 due today</span>
+                        </div>
+
                         <AnimatePresence mode="wait">
                           {submitError && (
                             <motion.div
@@ -1055,8 +1162,8 @@ export function GetYourFunnel({
                         >
                           <span>
                             {isCalculating
-                              ? "Saving Your Request..."
-                              : "Send My Custom Preview"}
+                              ? "Reserving Your £99 Spot..."
+                              : "Claim £99 Spot & Send Preview"}
                           </span>
                           <span>→</span>
                         </motion.button>
@@ -1109,6 +1216,10 @@ export function GetYourFunnel({
                         <div className="flex justify-between py-1 border-b border-stone-200/70">
                           <span className="text-[#52555f]">Monthly Goal</span>
                           <span className="font-bold text-[#121316]">{selectedGoalObj.label}</span>
+                        </div>
+                        <div className="flex justify-between py-1 border-b border-stone-200/70">
+                          <span className="text-[#52555f]">Founding Rate</span>
+                          <span className="font-bold text-[#047857]">£99 one-time (£0/mo)</span>
                         </div>
                         <div className="flex justify-between py-1">
                           <span className="text-[#52555f]">Preview Sent To</span>

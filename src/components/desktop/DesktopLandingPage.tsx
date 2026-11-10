@@ -55,6 +55,13 @@ function Header() {
           Live Demo
         </a>
         <a
+          href="#pricing"
+          className="hover:text-[#d9532f] transition-colors"
+          onClick={() => playSensoryFeedback("tap")}
+        >
+          Pricing (£99)
+        </a>
+        <a
           href="#funnel"
           className="hover:text-[#d9532f] transition-colors"
           onClick={() => playSensoryFeedback("tap")}
@@ -1113,6 +1120,11 @@ function Footer() {
           <li>
             <a href="#demo" className="hover:text-[#d9532f] transition-colors">
               Live Demo
+            </a>
+          </li>
+          <li>
+            <a href="#pricing" className="hover:text-[#d9532f] transition-colors">
+              Pricing (£99)
             </a>
           </li>
           <li>

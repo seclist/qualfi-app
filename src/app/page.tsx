@@ -38,6 +38,8 @@ export default function Page() {
       if (window.location.hash === "#demo") {
         document.getElementById("mobile-demo")?.scrollIntoView({ behavior: "smooth" });
       } else if (
+        window.location.hash === "#pricing" ||
+        window.location.hash === "#mobile-pricing" ||
         window.location.hash === "#funnel" ||
         window.location.hash === "#mobile-funnel" ||
         window.location.hash === "#enquire" ||
@@ -46,6 +48,8 @@ export default function Page() {
         window.location.hash === "#mobile-enquire"
       ) {
         (
+          document.getElementById("pricing") ||
+          document.getElementById("mobile-pricing") ||
           document.getElementById("mobile-funnel") ||
           document.getElementById("mobile-build") ||
           document.getElementById("mobile-enquire")

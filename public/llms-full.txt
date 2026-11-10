@@ -24,7 +24,12 @@ qualfi replaces passive bio links and "DM me READY" posts with a bespoke 60-seco
 - Hyrox & Hybrid Performance Coaches
 - Executive & Busy Professional Fitness Coaches
 
-## 4. Turnaround & Contact
+## 4. Pricing & Commercial Model
+- **Founding Partner Offer (First 25 Coaches)**: £99 one-time setup fee (regular rate £299).
+- **Zero Subscriptions**: £0 monthly software fees. Qualfi does not charge recurring SaaS subscription fees.
+- **Zero Risk Review**: £0 upfront deposit to initiate custom build. Coaches test and approve their live working preview before paying.
+
+## 5. Turnaround & Contact
 - Delivery Time: Custom designed, branded, and live in 72 hours.
 - Website: https://www.qualfi.app
 - Email: hello@qualfi.com
