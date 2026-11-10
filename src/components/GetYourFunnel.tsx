@@ -154,6 +154,7 @@ export function GetYourFunnel({
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showStackComparison, setShowStackComparison] = useState(false);
 
   const {
     register,
@@ -294,35 +295,44 @@ export function GetYourFunnel({
           className="text-left sm:text-center"
         >
           <span className="inline-block text-xs font-bold uppercase tracking-[0.22em] text-[#d9532f]">
-            Founding Partner Pricing · 72h Turnaround
+            Founding Partner Offer · 72h Delivery
           </span>
 
-          <h2 className="mt-3 font-serif text-4xl font-light tracking-tight text-[#121316] sm:text-5xl leading-[1.04]">
-            Transparent pricing. <span className="italic font-normal text-[#d9532f]">Zero subscriptions.</span>
+          <h2 className="mt-3 font-serif text-3xl font-light tracking-tight text-[#121316] sm:text-5xl leading-[1.08]">
+            Pay <span className="text-[#047857] font-normal italic">£0 today.</span> Only pay{" "}
+            <span className="text-[#d9532f] font-normal italic">£99</span> when you love it.
           </h2>
 
-          <p className="mt-3 text-sm sm:text-base text-[#52555f] leading-relaxed font-sans">
-            No recurring monthly software bills. We design, brand, and build your custom 60-second diagnostic tool for a one-time setup fee.
+          <p className="mt-3 text-sm sm:text-base text-[#52555f] leading-relaxed font-sans max-w-md mx-auto">
+            Zero upfront risk. We build and text your private 60-second bio diagnostic to your WhatsApp before taking payment. No monthly subscription, ever.
           </p>
         </motion.div>
 
-        {/* Founding Cohort Pricing Card */}
+        {/* ==================================================================== */}
+        {/* ARCHITECTURAL SPLIT TIMELINE: £0 TODAY → £99 ON HANDOVER            */}
+        {/* ==================================================================== */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.5, delay: 0.05, ease: EASING.naturalOut }}
-          className="mt-6 rounded-3xl border-2 border-[#d9532f]/25 bg-gradient-to-b from-white to-[#faf7f2]/60 p-5 sm:p-7 shadow-[0_15px_40px_rgba(217,83,47,0.05)] relative overflow-hidden"
+          className="mt-6 rounded-3xl border-2 border-stone-200/90 bg-white p-5 sm:p-7 shadow-[0_20px_50px_rgba(18,19,22,0.05)] relative overflow-hidden text-left"
         >
-          {/* Subtle Glow */}
-          <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#d9532f]/10 blur-2xl" />
+          {/* Ambient Glow */}
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#d9532f]/10 blur-2xl" />
 
-          {/* Tier Label & Spots Left */}
+          {/* Top Bar: Founding Scarcity & No-Subscription Guarantee */}
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200/80 pb-3.5">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#d9532f]/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#d9532f]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#d9532f]" />
-              Founding Partner Offer
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#d9532f]/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#d9532f]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#d9532f]" />
+                Founding Cohort
+              </span>
+              <span className="hidden sm:inline-block text-[11px] font-semibold text-[#52555f]">
+                Lifetime Setup · £0 Monthly
+              </span>
+            </div>
+
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#047857] border border-emerald-200/60">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -332,75 +342,191 @@ export function GetYourFunnel({
             </span>
           </div>
 
-          {/* Price Numbers */}
-          <div className="mt-5 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
-            <div>
-              <div className="flex items-baseline gap-2.5">
-                <span className="font-serif text-5xl sm:text-6xl font-light text-[#121316] tracking-tight">
-                  £99
-                </span>
-                <span className="text-lg font-semibold text-stone-400 line-through">
-                  £299
-                </span>
-                <span className="rounded-full bg-[#10b981]/15 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-[#047857]">
-                  Save £200
+          {/* 2-Stage Split Timeline Grid */}
+          <div className="relative mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Stage 01: Today */}
+            <motion.div
+              whileHover={{ y: -2 }}
+              transition={{ duration: 0.2 }}
+              className="relative flex flex-col justify-between rounded-2xl border border-emerald-200 bg-gradient-to-b from-emerald-50/50 via-white to-[#faf7f2]/50 p-4 sm:p-5 shadow-xs"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#047857]">
+                    Stage 01 · Today
+                  </span>
+                  <span className="rounded-full bg-[#10b981]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#047857]">
+                    Zero Upfront
+                  </span>
+                </div>
+
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="font-serif text-5xl font-light text-[#121316] tracking-tight">
+                    £0
+                  </span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#047857]">
+                    Due Today · No Card Needed
+                  </span>
+                </div>
+
+                <p className="mt-2 text-xs text-[#52555f] leading-relaxed">
+                  Complete the 4 questions below. We reserve your bio handle (<code className="rounded bg-stone-100 px-1 py-0.5 text-[#121316]">qualfi.com/@you</code>) and calibrate your custom formulas.
+                </p>
+
+                <ul className="mt-3.5 space-y-1.5 text-xs text-[#121316] border-t border-emerald-100 pt-3">
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#047857] font-bold">✓</span>
+                    <span>Bespoke 60s diagnostic design</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#047857] font-bold">✓</span>
+                    <span>Reserved bio URL &amp; website embed</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#047857] font-bold">✓</span>
+                    <span>Mifflin-St Jeor calories &amp; split engine</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-emerald-100/70">
+                <span className="text-[11px] font-semibold text-[#047857]">
+                  → Status: Ready to start below in 60s
                 </span>
               </div>
-              <p className="mt-1 text-xs sm:text-sm font-semibold text-[#121316]">
-                One-time full setup · Absolutely zero subscription, forever
-              </p>
-            </div>
-            <div className="text-left sm:text-right">
-              <span className="inline-block rounded-full border border-stone-200/80 bg-white px-3 py-1 text-[11px] font-medium text-[#52555f] shadow-2xs">
-                72h Turnaround
-              </span>
-            </div>
+            </motion.div>
+
+            {/* Stage 02: Handover */}
+            <motion.div
+              whileHover={{ y: -2 }}
+              transition={{ duration: 0.2 }}
+              className="relative flex flex-col justify-between rounded-2xl border-2 border-[#d9532f]/30 bg-gradient-to-b from-[#d9532f]/5 via-white to-[#faf7f2]/50 p-4 sm:p-5 shadow-xs"
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#d9532f]">
+                    Stage 02 · In 72 Hours
+                  </span>
+                  <span className="rounded-full bg-[#d9532f]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#d9532f]">
+                    Only If You Love It
+                  </span>
+                </div>
+
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="font-serif text-5xl font-light text-[#121316] tracking-tight">
+                    £99
+                  </span>
+                  <span className="text-sm font-semibold text-stone-400 line-through">
+                    £299
+                  </span>
+                  <span className="text-xs font-bold text-[#d9532f]">
+                    One-time buyout
+                  </span>
+                </div>
+
+                <p className="mt-2 text-xs text-[#52555f] leading-relaxed">
+                  We text your working preview link to WhatsApp. Test the numbers, request any tweaks, and only pay £99 once approved.
+                </p>
+
+                <ul className="mt-3.5 space-y-1.5 text-xs text-[#121316] border-t border-stone-200/70 pt-3">
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#047857] font-bold">✓</span>
+                    <span>&lt;2s instant WhatsApp lead routing</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#047857] font-bold">✓</span>
+                    <span>0–100 buyer intent algorithm</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#d9532f] font-bold">✓</span>
+                    <span className="font-bold text-[#d9532f]">£0/month subscription forever</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-stone-200/70">
+                <span className="text-[11px] font-semibold text-[#52555f]">
+                  → Status: Full ownership · Zero recurring fees
+                </span>
+              </div>
+            </motion.div>
           </div>
 
-          {/* Deliverables Checklist */}
+          {/* Interactive Progressive Disclosure: SaaS Stack vs Qualfi */}
           <div className="mt-5 border-t border-stone-200/80 pt-4">
-            <span className="block text-[11px] font-bold uppercase tracking-wider text-[#52555f] mb-2.5">
-              Everything Included in Your £99 Setup:
-            </span>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#121316]">
-              <li className="flex items-start gap-2">
-                <span className="text-[#047857] font-bold shrink-0">✓</span>
-                <span>Bespoke 60s diagnostic micro-tool</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#047857] font-bold shrink-0">✓</span>
-                <span>0–100 purchase intent algorithm</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#047857] font-bold shrink-0">✓</span>
-                <span>&lt;2s instant WhatsApp lead dispatch</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#047857] font-bold shrink-0">✓</span>
-                <span>Mifflin-St Jeor calories &amp; split engine</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#047857] font-bold shrink-0">✓</span>
-                <span>Bio link (qualfi.com/@you) &amp; embed</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#047857] font-bold shrink-0">✓</span>
-                <span>1-on-1 brand styling &amp; copy calibration</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#047857] font-bold shrink-0">✓</span>
-                <span>Ready to link in your bio in 72 hours</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#047857] font-bold shrink-0">✓</span>
-                <span className="font-bold text-[#d9532f]">£0 monthly software subscriptions</span>
-              </li>
-            </ul>
+            <button
+              type="button"
+              onClick={() => {
+                playSensoryFeedback("tap");
+                triggerMobileHaptic("light");
+                setShowStackComparison((prev) => !prev);
+              }}
+              className="group flex min-h-[44px] w-full items-center justify-between rounded-xl border border-stone-200/90 bg-[#faf7f2] px-3.5 py-2.5 text-xs text-[#121316] hover:border-stone-300 transition-colors focus-visible:ring-2 focus-visible:ring-[#d9532f]"
+              aria-expanded={showStackComparison}
+            >
+              <span className="flex items-center gap-2 font-medium">
+                <span className="text-[#d9532f]">⚡</span>
+                <span>Why £99 once beats monthly software subscriptions</span>
+              </span>
+              <motion.span
+                animate={{ rotate: showStackComparison ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="font-mono text-stone-400 text-xs"
+              >
+                ▼
+              </motion.span>
+            </button>
+
+            <AnimatePresence>
+              {showStackComparison && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: EASING.naturalOut }}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-3 rounded-2xl border border-stone-200 bg-white p-4 text-xs space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-stone-100">
+                      <div>
+                        <span className="block font-bold text-rose-600 mb-1">
+                          Typical Coach Stack
+                        </span>
+                        <p className="text-[11px] text-[#52555f] leading-snug">
+                          Stan Store (£29/mo) + Typeform (£25/mo) or Linktree Pro = <b>£348 to £648/year</b>, recurring every single year.
+                        </p>
+                      </div>
+                      <div>
+                        <span className="block font-bold text-[#047857] mb-1">
+                          Qualfi Founding Partner
+                        </span>
+                        <p className="text-[11px] text-[#52555f] leading-snug">
+                          <b>£99 once.</b> Bespoke build, Mifflin-St Jeor engine, and WhatsApp lead routing. <b>£0/mo forever</b>.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] font-semibold text-[#52555f]">
+                      <span>Average 1-year saving: <b className="text-[#121316]">£249 to £549</b></span>
+                      <span className="text-[#047857]">1 new client pays for this 10× over</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Zero-Risk Reassurance Banner */}
-          <div className="mt-5 rounded-2xl border border-stone-200/80 bg-[#faf7f2] p-3.5 text-xs text-[#52555f]">
-            <b className="text-[#121316]">Zero Upfront Payment:</b> Complete the 4 questions below to lock in your £99 founding rate. We build and text your working preview before you pay a single penny.
+          {/* Quick Action Anchor */}
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl bg-[#faf7f2] p-3 text-xs text-[#52555f]">
+            <span>
+              <b>Step 1 below takes 60 seconds:</b> Select your coaching focus to begin.
+            </span>
+            <a
+              href="#funnel-form"
+              onClick={() => playSensoryFeedback("tap")}
+              className="shrink-0 rounded-full bg-[#121316] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-[#d9532f] transition-colors"
+            >
+              Start £0 Build ↓
+            </a>
           </div>
         </motion.div>
 
