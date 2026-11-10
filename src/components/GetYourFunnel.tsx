@@ -260,22 +260,6 @@ export function GetYourFunnel({
     return Boolean(val && val.trim().length >= 2 && !errors[fieldName] && dirtyFields[fieldName]);
   };
 
-  const emailFastTrackHref = () => {
-    const subject = `Custom Bio Funnel Request — @${cleanHandle}`;
-    const body = [
-      `Hey qualfi team,`,
-      ``,
-      `I just requested my custom bio funnel!`,
-      ``,
-      `Bio Link: qualfi.com/@${cleanHandle}`,
-      `Coach: ${watchedValues.name}`,
-      `Coaching: ${selectedSpecialtyObj.label}`,
-      `Goal: ${selectedGoalObj.label}`,
-      `WhatsApp: ${watchedValues.whatsapp}`,
-    ].join("\n");
-    return `mailto:hello@qualfi.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  };
-
   return (
     <section
       id={sectionId}
@@ -1101,18 +1085,15 @@ export function GetYourFunnel({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, ease: EASING.naturalOut }}
-                        className="rounded-2xl border border-[#d9532f]/25 bg-gradient-to-br from-[#faf7f2] to-white p-4 shadow-xs"
+                        className="rounded-2xl border border-[#d9532f]/25 bg-gradient-to-br from-[#faf7f2] to-white p-5 shadow-xs"
                       >
                         <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#047857]">
                           <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                          Reserved & Queued For Build
+                          Application Received
                         </span>
-                        <div className="mt-1 font-serif text-2xl sm:text-3xl font-light text-[#121316]">
-                          qualfi.com/@{cleanHandle}
+                        <div className="mt-2 font-serif text-xl sm:text-2xl font-light leading-snug text-[#121316]">
+                          It&apos;ll be ready within 72 hours and we will be in touch soon.
                         </div>
-                        <p className="mt-1 text-xs text-[#52555f]">
-                          Custom preview for <b>{watchedValues.name}</b> ready within 72 hours.
-                        </p>
                       </motion.div>
 
                       <motion.div
@@ -1150,19 +1131,8 @@ export function GetYourFunnel({
                           onClick={() => playSensoryFeedback("tap")}
                           className="flex min-h-[54px] w-full items-center justify-center gap-2 rounded-full bg-[#121316] px-6 py-4 text-xs font-bold uppercase tracking-wider text-white shadow-md hover:bg-[#d9532f] transition-colors"
                         >
-                          <span>Follow @qualfiapp On Instagram</span>
+                          <span>Message Us On Instagram @qualfiapp</span>
                           <span>↗</span>
-                        </motion.a>
-
-                        <motion.a
-                          href={emailFastTrackHref()}
-                          whileHover={{ scale: 1.015 }}
-                          whileTap={{ scale: 0.97 }}
-                          onClick={() => playSensoryFeedback("tap")}
-                          className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full border border-stone-300 bg-white px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-[#121316] shadow-xs hover:border-[#d9532f] hover:text-[#d9532f] transition-colors"
-                        >
-                          <span>Email Us · hello@qualfi.com</span>
-                          <span>→</span>
                         </motion.a>
 
                         <button
