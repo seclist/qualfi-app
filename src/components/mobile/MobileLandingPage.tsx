@@ -123,7 +123,7 @@ export function MobileLandingPage() {
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
   // Active Tab for Bottom Navigation Bar (Principle 10 Visual)
-  type SectionTabId = "home" | "demo" | "pricing" | "enquire";
+  type SectionTabId = "home" | "demo" | "enquire";
   const [activeTab, setActiveTab] = useState<SectionTabId>("home");
   const isProgrammaticScrollRef = useRef(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -147,8 +147,6 @@ export function MobileLandingPage() {
     const targetId =
       targetTab === "demo"
         ? "mobile-demo"
-        : targetTab === "pricing"
-        ? "mobile-pricing"
         : "mobile-funnel";
     const el = document.getElementById(targetId);
     if (el) {
@@ -606,23 +604,6 @@ export function MobileLandingPage() {
                 </a>
 
                 <a
-                  href="#mobile-pricing"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    playSensoryFeedback("tap");
-                    triggerMobileHaptic("light");
-                    scrollToMobileSection("pricing");
-                  }}
-                  className="flex min-h-[52px] items-center justify-between rounded-2xl border border-stone-200/80 bg-[#faf7f2] px-4 py-3 font-serif text-base font-medium text-[#121316] active:bg-[#d9532f] active:text-white transition-colors"
-                >
-                  <span className="flex items-center gap-2.5">
-                    <span className="font-mono text-xs text-[#047857]">03</span>
-                    <span>Founding Partner Offer</span>
-                  </span>
-                  <span className="text-xs text-[#047857] font-sans font-semibold">£99 One-Time</span>
-                </a>
-
-                <a
                   href="#mobile-funnel"
                   onClick={(e) => {
                     e.preventDefault();
@@ -633,7 +614,7 @@ export function MobileLandingPage() {
                   className="flex min-h-[52px] items-center justify-between rounded-2xl border border-stone-200/80 bg-[#faf7f2] px-4 py-3 font-serif text-base font-medium text-[#121316] active:bg-[#d9532f] active:text-white transition-colors"
                 >
                   <span className="flex items-center gap-2.5">
-                    <span className="font-mono text-xs text-stone-400">04</span>
+                    <span className="font-mono text-xs text-stone-400">03</span>
                     <span>Commission Your Funnel</span>
                   </span>
                   <span className="text-xs text-stone-400 font-sans font-semibold">72h Delivery</span>
