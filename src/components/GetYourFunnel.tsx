@@ -280,8 +280,52 @@ export function GetYourFunnel({
         </>
       )}
 
-      {/* Warm Ambient Background Glow */}
-      <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(217,83,47,0.08),transparent_70%)] blur-3xl" />
+      {/* Precision Background Layer 1: Atmospheric Ambient Gradients */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(217,83,47,0.09),transparent_70%)] blur-2xl" />
+        <div className="absolute top-1/2 left-4 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(217,83,47,0.06),transparent_65%)] blur-3xl" />
+        <div className="absolute top-1/3 right-4 h-[450px] w-[450px] rounded-full bg-[radial-gradient(circle,rgba(16,185,129,0.06),transparent_65%)] blur-3xl" />
+      </div>
+
+      {/* Athletic Topographic Elevation Vector Contours (Lines & Dotted Lines) */}
+      <svg
+        className="pointer-events-none absolute inset-0 h-full w-full z-0 opacity-40"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1440 900"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M-80 160 C 260 80, 520 270, 860 180 C 1140 110, 1340 220, 1560 150"
+          fill="none"
+          stroke="#121316"
+          strokeWidth="1"
+          strokeDasharray="4 8"
+          className="opacity-30"
+        />
+        <path
+          d="M-80 320 C 320 200, 640 380, 980 270 C 1220 190, 1380 300, 1560 250"
+          fill="none"
+          stroke="#d9532f"
+          strokeWidth="1.2"
+          className="opacity-35"
+        />
+        <path
+          d="M-80 470 C 240 370, 580 530, 890 430 C 1180 340, 1360 450, 1560 400"
+          fill="none"
+          stroke="#121316"
+          strokeWidth="1"
+          className="opacity-20"
+        />
+        <path
+          d="M-80 630 C 360 530, 720 670, 1070 570 C 1290 500, 1440 590, 1560 540"
+          fill="none"
+          stroke="#10b981"
+          strokeWidth="1"
+          strokeDasharray="6 10"
+          className="opacity-30"
+        />
+      </svg>
 
       {/* Single-Column Container */}
       <div className="relative z-10 mx-auto max-w-lg">
