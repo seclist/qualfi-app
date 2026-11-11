@@ -36,6 +36,10 @@ const privacyBreadcrumbJsonLd = {
   ],
 };
 
+function safeJsonLdStringify(obj: unknown): string {
+  return JSON.stringify(obj).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
+}
+
 export default function PrivacyPage() {
   return (
     <main
@@ -45,7 +49,7 @@ export default function PrivacyPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(privacyBreadcrumbJsonLd),
+          __html: safeJsonLdStringify(privacyBreadcrumbJsonLd),
         }}
       />
       <div className="mx-auto max-w-2xl">
@@ -75,7 +79,7 @@ export default function PrivacyPage() {
             Privacy Policy
           </h1>
           <p className="mt-2 text-xs text-[#52555f]">
-            Effective Date: November 2026 · Compliant with GDPR (EU/UK) and CCPA/CPRA
+            Effective Date: November 2026 · Compliant with UK GDPR, EU GDPR (Regulation (EU) 2016/679), and PECR
           </p>
         </header>
 
@@ -83,11 +87,19 @@ export default function PrivacyPage() {
         <div className="space-y-8 text-sm leading-relaxed text-[#52555f]">
           <section className="space-y-3">
             <h2 className="font-serif text-xl font-normal text-[#121316]">
-              1. Overview
+              1. Data Controller Identity & Contact
             </h2>
             <p>
-              qualfi provides bespoke diagnostic bio funnels and prequalification micro-tools for coaches and service providers. This Privacy Policy describes how we collect, process, and protect your information when you interact with our website or complete an interactive diagnostic.
+              This website and the qualfi diagnostic services are operated by the founders of <strong>qualfi</strong> as an unincorporated commercial venture based in the United Kingdom (formal limited company registration currently in progress).
             </p>
+            <p>
+              Under the UK General Data Protection Regulation (UK GDPR) and Data Protection Act 2018, the designated Data Protection Contact for qualfi can be reached at:
+            </p>
+            <div className="rounded-2xl border border-stone-200 bg-[#faf7f2] p-4 text-xs font-mono text-[#121316] space-y-1">
+              <div><strong>Designated Privacy Lead:</strong> Data Protection Lead, qualfi</div>
+              <div><strong>Email:</strong> scalixvip@gmail.com</div>
+              <div><strong>Location:</strong> London / United Kingdom</div>
+            </div>
           </section>
 
           <section className="space-y-3">
@@ -95,72 +107,113 @@ export default function PrivacyPage() {
               2. Data We Collect
             </h2>
             <p>
-              When you submit a funnel request or complete a coach diagnostic, we may collect:
+              When you submit a bio funnel enquiry or test a coach diagnostic micro-tool, we may collect:
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
               <li>
-                <strong className="text-[#121316]">Contact Details:</strong> Your name, Instagram handle, and mobile phone/WhatsApp number.
+                <strong className="text-[#121316]">Contact Data:</strong> Your name, Instagram handle, and mobile phone/WhatsApp number.
               </li>
               <li>
-                <strong className="text-[#121316]">Diagnostic Inputs:</strong> Your coaching goals, training availability, primary bottlenecks, and target milestones.
+                <strong className="text-[#121316]">Coaching & Business Inputs:</strong> Coaching focus, monthly client volume goals, and current conversion bottlenecks.
               </li>
               <li>
-                <strong className="text-[#121316]">Functional Storage:</strong> Local device progress saved to resume incomplete sessions (never used for third-party ad tracking).
+                <strong className="text-[#121316]">Health & Physiological Inputs (Special Category Data):</strong> Current bodyweight, age, training frequency, dietary consistency struggles, and metabolic slowdown markers used to compute caloric targets and workout splits.
+              </li>
+              <li>
+                <strong className="text-[#121316]">Technical & Telemetry Data:</strong> IP address (processed strictly for rate limiting and network security), device category (Mobile/Desktop), and timestamp of submission.
               </li>
             </ul>
           </section>
 
           <section className="space-y-3">
             <h2 className="font-serif text-xl font-normal text-[#121316]">
-              3. Purpose & Legal Basis for Processing
+              3. Lawful Basis for Processing (GDPR Articles 6 & 9)
             </h2>
             <p>
-              Under GDPR Article 6, we process your personal data based on legitimate interest and explicit consent:
+              We process personal data only when a valid statutory legal basis exists:
             </p>
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>To calibrate and generate your custom bio funnel or nutrition blueprint.</li>
-              <li>To route verified diagnostic deliverables directly to your WhatsApp or mobile device.</li>
-              <li>To verify handle availability and prevent automated spam submissions.</li>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>
+                <strong className="text-[#121316]">Contractual Necessity (Article 6(1)(b)):</strong> To configure, calibrate, and build your requested bespoke bio funnel preview and calculate your sample nutrition and workout split targets.
+              </li>
+              <li>
+                <strong className="text-[#121316]">Explicit Consent (Article 6(1)(a) & Article 9(2)(a)):</strong> To process physiological health/dietary metrics and to transmit your preview link and onboarding assistance to your personal WhatsApp number.
+              </li>
+              <li>
+                <strong className="text-[#121316]">Legitimate Interests (Article 6(1)(f)):</strong> To enforce rate limiting, prevent automated bot spam, verify handle availability, and secure our web infrastructure.
+              </li>
             </ul>
             <p>
-              We do not sell, rent, or trade your personal information to data brokers or third-party advertisers under any circumstances.
+              We never sell, rent, or trade your personal data to brokers or third-party advertisers.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="font-serif text-xl font-normal text-[#121316]">
-              4. WhatsApp & Webhook Integrations
+              4. Third-Party Sub-Processors & International Transfers
             </h2>
             <p>
-              When you submit an enquiry, your information may be transmitted via end-to-end encrypted webhooks to WhatsApp to deliver your live link within 72 hours. Communication is strictly transactional related to your request.
-            </p>
-          </section>
-
-          <section className="space-y-3">
-            <h2 className="font-serif text-xl font-normal text-[#121316]">
-              5. Your Rights (GDPR & CCPA)
-            </h2>
-            <p>
-              Depending on your jurisdiction, you have the right to:
+              We utilize trusted cloud sub-processors to deliver our services. Where data is transferred outside the UK/EEA, transfers are safeguarded under Standard Contractual Clauses (SCCs), UK International Data Transfer Addenda, or adequacy regulations:
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li>Access and receive a copy of your personal data.</li>
-              <li>Request immediate correction or permanent deletion of your data.</li>
-              <li>Withdraw consent or opt out of communications at any time.</li>
+              <li>
+                <strong className="text-[#121316]">Vercel Inc. (USA):</strong> Cloud hosting, Edge routing, and serverless compute infrastructure (covered by Data Processing Addendum and SCCs).
+              </li>
+              <li>
+                <strong className="text-[#121316]">Google LLC (USA):</strong> Cloud spreadsheet storage and API integration for lead management (covered by Google Cloud Data Processing Terms).
+              </li>
+              <li>
+                <strong className="text-[#121316]">Meta Platforms Inc. / WhatsApp (USA/EU):</strong> Transactional messaging channel used to dispatch your working bio link preview.
+              </li>
             </ul>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="font-serif text-xl font-normal text-[#121316]">
+              5. Data Retention Schedule
+            </h2>
             <p>
-              To exercise any of these rights, contact our data protection team directly at{" "}
-              <span className="font-medium text-[#121316]">hello@qualfi.com</span>.
+              Contact details and funnel enquiry submissions are retained in our lead management system for a maximum of <strong>90 days</strong> from the date of submission, after which inactive records are permanently purged or anonymized, unless an active service engagement is executed.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="font-serif text-xl font-normal text-[#121316]">
-              6. Data Retention
+              6. Your Statutory Rights (GDPR & CCPA)
             </h2>
             <p>
-              We retain contact details only for as long as necessary to complete your funnel delivery and provide customer support, after which records are anonymized or purged.
+              Under applicable data protection legislation, you hold the following enforceable rights:
             </p>
+            <ul className="list-disc pl-5 space-y-1.5">
+              <li><strong>Right of Access (Article 15):</strong> Request a copy of the personal data we hold about you.</li>
+              <li><strong>Right to Rectification (Article 16):</strong> Request correction of inaccurate personal data.</li>
+              <li><strong>Right to Erasure (Article 17):</strong> Request permanent deletion of your data from our systems.</li>
+              <li><strong>Right to Restriction of Processing (Article 18):</strong> Restrict how your data is processed.</li>
+              <li><strong>Right to Data Portability (Article 20):</strong> Receive your personal data in a machine-readable JSON/CSV format.</li>
+              <li><strong>Right to Object (Article 21):</strong> Object to processing based on legitimate interests or direct marketing at any time.</li>
+              <li><strong>Right to Withdraw Consent (Article 7(3)):</strong> Withdraw consent at any time without affecting the lawfulness of processing prior to withdrawal.</li>
+            </ul>
+            <p>
+              To exercise any statutory right, email our team at{" "}
+              <a href="mailto:scalixvip@gmail.com" className="font-medium text-[#d9532f] underline underline-offset-2">
+                scalixvip@gmail.com
+              </a>. We respond to all verified requests within 30 days free of charge.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="font-serif text-xl font-normal text-[#121316]">
+              7. Right to Lodge a Complaint with a Supervisory Authority
+            </h2>
+            <p>
+              If you believe our processing of your personal data infringes data protection laws, you have the statutory right under GDPR Article 77 to lodge a formal complaint with a supervisory authority:
+            </p>
+            <div className="rounded-2xl border border-stone-200 bg-[#faf7f2] p-4 text-xs font-mono text-[#121316] space-y-1">
+              <div><strong>United Kingdom:</strong> Information Commissioner&rsquo;s Office (ICO)</div>
+              <div><strong>Website:</strong> <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" className="text-[#d9532f] underline">ico.org.uk</a></div>
+              <div><strong>Helpline:</strong> 0303 123 1113</div>
+              <div className="pt-1 text-[#52555f] font-sans">EU residents may lodge a complaint with their local National Data Protection Authority.</div>
+            </div>
           </section>
         </div>
 

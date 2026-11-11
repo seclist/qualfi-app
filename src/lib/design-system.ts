@@ -88,10 +88,31 @@ export const COLORS = {
 /**
  * Web Audio Subtle Sensory Feedback + Native Mobile Device Haptics
  * (Visual Principle 20 - Haptic Feedback Integration; Animation Principle 1 - Rapid Responsiveness)
- * Zero external audio files; synthesized in memory with browser oscillator + native Vibration API.
+ * Single lazy-loaded AudioContext singleton to prevent exceeding the browser 6-context ceiling.
  */
+let sharedAudioCtx: AudioContext | null = null;
+let lastAudioTime = 0;
+let lastHapticTime = 0;
+
+function getSharedAudioContext(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  if (!sharedAudioCtx) {
+    const AudioCtxClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
+    if (AudioCtxClass) {
+      sharedAudioCtx = new AudioCtxClass();
+    }
+  }
+  return sharedAudioCtx;
+}
+
 export function triggerMobileHaptic(type: "light" | "medium" | "heavy" | "success" = "light") {
   if (typeof window === "undefined") return;
+  const now = performance.now();
+  if (now - lastHapticTime < 50 && type === "light") return; // 50ms throttle
+  lastHapticTime = now;
+
   try {
     if ("navigator" in window && "vibrate" in navigator) {
       if (type === "light") {
@@ -112,6 +133,10 @@ export function triggerMobileHaptic(type: "light" | "medium" | "heavy" | "succes
 export function playSensoryFeedback(type: "tap" | "success" | "chime" | "whatsapp" = "tap") {
   if (typeof window === "undefined") return;
 
+  const now = performance.now();
+  if (type === "tap" && now - lastAudioTime < 35) return; // 35ms throttle
+  lastAudioTime = now;
+
   // Trigger mobile physical haptic vibration if available
   if (type === "tap") {
     triggerMobileHaptic("light");
@@ -120,14 +145,13 @@ export function playSensoryFeedback(type: "tap" | "success" | "chime" | "whatsap
   }
 
   try {
-    const AudioContext =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof window.AudioContext }).webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
-    if (ctx.state === "suspended") ctx.resume();
+    const ctx = getSharedAudioContext();
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
 
-    const now = ctx.currentTime;
+    const t = ctx.currentTime;
 
     if (type === "tap") {
       // Crisp 50ms click (Principle 6)
@@ -136,12 +160,12 @@ export function playSensoryFeedback(type: "tap" | "success" | "chime" | "whatsap
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.type = "sine";
-      osc.frequency.setValueAtTime(620, now);
-      osc.frequency.exponentialRampToValueAtTime(320, now + 0.05);
-      gain.gain.setValueAtTime(0.04, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-      osc.start(now);
-      osc.stop(now + 0.05);
+      osc.frequency.setValueAtTime(620, t);
+      osc.frequency.exponentialRampToValueAtTime(320, t + 0.05);
+      gain.gain.setValueAtTime(0.04, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+      osc.start(t);
+      osc.stop(t + 0.05);
     } else if (type === "success") {
       // Pleasant double-chime for lead delivery (Principle 10, 39)
       const osc = ctx.createOscillator();
@@ -149,37 +173,37 @@ export function playSensoryFeedback(type: "tap" | "success" | "chime" | "whatsap
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.type = "sine";
-      osc.frequency.setValueAtTime(587.33, now); // D5
-      osc.frequency.setValueAtTime(880, now + 0.08); // A5
-      gain.gain.setValueAtTime(0.06, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
-      osc.start(now);
-      osc.stop(now + 0.28);
+      osc.frequency.setValueAtTime(587.33, t); // D5
+      osc.frequency.setValueAtTime(880, t + 0.08); // A5
+      gain.gain.setValueAtTime(0.06, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      osc.start(t);
+      osc.stop(t + 0.28);
     } else if (type === "whatsapp") {
       // Authentic signature WhatsApp mobile incoming chime:
       // Note 1: 830.6Hz (Ab5), Note 2: 1318.5Hz (E6) with high-clarity harmonic resonance
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
       osc1.type = "sine";
-      osc1.frequency.setValueAtTime(830.6, now);
-      osc1.frequency.exponentialRampToValueAtTime(880, now + 0.06);
-      gain1.gain.setValueAtTime(0.09, now);
-      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+      osc1.frequency.setValueAtTime(830.6, t);
+      osc1.frequency.exponentialRampToValueAtTime(880, t + 0.06);
+      gain1.gain.setValueAtTime(0.09, t);
+      gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
       osc1.connect(gain1);
       gain1.connect(ctx.destination);
-      osc1.start(now);
-      osc1.stop(now + 0.15);
+      osc1.start(t);
+      osc1.stop(t + 0.15);
 
       const osc2 = ctx.createOscillator();
       const gain2 = ctx.createGain();
       osc2.type = "sine";
-      osc2.frequency.setValueAtTime(1318.5, now + 0.08);
-      gain2.gain.setValueAtTime(0.12, now + 0.08);
-      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+      osc2.frequency.setValueAtTime(1318.5, t + 0.08);
+      gain2.gain.setValueAtTime(0.12, t + 0.08);
+      gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
       osc2.connect(gain2);
       gain2.connect(ctx.destination);
-      osc2.start(now + 0.08);
-      osc2.stop(now + 0.45);
+      osc2.start(t + 0.08);
+      osc2.stop(t + 0.45);
     }
   } catch {
     // Graceful silence on restricted permissions
@@ -204,4 +228,3 @@ export function useSafeMotion() {
       : { opacity: 1, y: 0, scale: 1 },
   };
 }
-

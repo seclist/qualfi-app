@@ -38,21 +38,22 @@ const securityHeaders = [
   {
     key: "Permissions-Policy",
     value:
-      "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()",
+      "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=(), accelerometer=(), gyroscope=(), magnetometer=(), display-capture=()",
   },
   {
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
       `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: https: blob:",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self' data:",
+      "img-src 'self' data: blob:", // Tightened: Removed wildcard https: to block data exfiltration
       `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
       "worker-src 'self' blob:",
       "manifest-src 'self'",
       "base-uri 'self'",
       "object-src 'none'",
+      "frame-src 'none'",
       "frame-ancestors 'none'",
       "form-action 'self'",
       ...(!isDev ? ["upgrade-insecure-requests"] : []),

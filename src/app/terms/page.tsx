@@ -36,6 +36,10 @@ const termsBreadcrumbJsonLd = {
   ],
 };
 
+function safeJsonLdStringify(obj: unknown): string {
+  return JSON.stringify(obj).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
+}
+
 export default function TermsPage() {
   return (
     <main
@@ -45,7 +49,7 @@ export default function TermsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(termsBreadcrumbJsonLd),
+          __html: safeJsonLdStringify(termsBreadcrumbJsonLd),
         }}
       />
       <div className="mx-auto max-w-2xl">
@@ -86,7 +90,7 @@ export default function TermsPage() {
               1. Acceptance of Terms
             </h2>
             <p>
-              By accessing qualfi.com or utilizing any qualfi diagnostic micro-tool, you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please refrain from using our services.
+              By accessing qualfi.app or utilizing any qualfi diagnostic micro-tool, you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please refrain from using our services.
             </p>
           </section>
 
@@ -137,7 +141,9 @@ export default function TermsPage() {
             </h2>
             <p>
               For any questions regarding these Terms of Service, contact us at{" "}
-              <span className="font-medium text-[#121316]">hello@qualfi.com</span>.
+              <a href="mailto:scalixvip@gmail.com" className="font-medium text-[#d9532f] underline underline-offset-2">
+                scalixvip@gmail.com
+              </a>.
             </p>
           </section>
         </div>

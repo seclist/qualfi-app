@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { DesktopLandingPage } from "@/components/desktop/DesktopLandingPage";
 import { MobileLandingPage } from "@/components/mobile/MobileLandingPage";
 
@@ -8,73 +8,69 @@ import { MobileLandingPage } from "@/components/mobile/MobileLandingPage";
  * ============================================================================
  * QUALFI HYBRID RESPONSIVE ARCHITECTURE
  * ----------------------------------------------------------------------------
- * STRICT RULE ADHERENCE:
- * - Desktop View (md: breakpoint and above, >=768px):
- *   100% UNTOUCHED original desktop website design, realistic dual iPhone mockups,
- *   exact desktop animations, typography, and layout.
+ * - Desktop View (md: breakpoint and above, >=768px): DesktopLandingPage
+ * - Mobile View (below md: breakpoint, <768px): MobileLandingPage
  *
- * - Mobile View (below md: breakpoint, <768px):
- *   Comprehensive overhaul implementing all 40 industry-backed and science-backed
- *   mobile visual & animation principles (one-handed navigation, 48x48dp tap targets,
- *   16px+ typography, visible search, dark mode, haptics, pull-to-refresh,
- *   subdued skeleton loading, swipe gestures with exit velocity, etc.).
+ * The server renders both trees (CSS picks the visible one, so there is no
+ * layout flash). Once the browser knows its viewport, the inactive tree is
+ * unmounted so its listeners, animations, and duplicate anchors are gone.
  * ============================================================================
  */
+
+// Matches Tailwind's `md` breakpoint (48rem) exactly
+const DESKTOP_QUERY = "(min-width: 48rem)";
+
+function subscribeToViewport(onChange: () => void) {
+  const mq = window.matchMedia(DESKTOP_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
+const getIsMobile = (): boolean | null => !window.matchMedia(DESKTOP_QUERY).matches;
+const getIsMobileOnServer = (): boolean | null => null;
+
+// Desktop anchors and legacy aliases -> the section that exists in the mobile tree
+const MOBILE_HASH_TARGETS: Record<string, string> = {
+  "#demo": "mobile-demo",
+  "#mobile-demo": "mobile-demo",
+  "#funnel": "mobile-funnel",
+  "#mobile-funnel": "mobile-funnel",
+  "#pricing": "mobile-funnel",
+  "#mobile-pricing": "mobile-funnel",
+  "#enquire": "mobile-funnel",
+  "#mobile-enquire": "mobile-funnel",
+  "#build": "mobile-funnel",
+  "#mobile-build": "mobile-funnel",
+};
+
 export default function Page() {
-  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+  const isMobile = useSyncExternalStore(
+    subscribeToViewport,
+    getIsMobile,
+    getIsMobileOnServer
+  );
 
+  // Deep links (e.g. /#funnel from the 404 or legal pages) land on the right mobile section
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  // Graceful hash-link redirection for mobile devices
-  useEffect(() => {
-    if (window.innerWidth < 768) {
-      if (window.location.hash === "#demo") {
-        document.getElementById("mobile-demo")?.scrollIntoView({ behavior: "smooth" });
-      } else if (
-        window.location.hash === "#pricing" ||
-        window.location.hash === "#mobile-pricing" ||
-        window.location.hash === "#funnel" ||
-        window.location.hash === "#mobile-funnel" ||
-        window.location.hash === "#enquire" ||
-        window.location.hash === "#build" ||
-        window.location.hash === "#mobile-build" ||
-        window.location.hash === "#mobile-enquire"
-      ) {
-        (
-          document.getElementById("pricing") ||
-          document.getElementById("mobile-pricing") ||
-          document.getElementById("mobile-funnel") ||
-          document.getElementById("mobile-build") ||
-          document.getElementById("mobile-enquire")
-        )?.scrollIntoView({ behavior: "smooth" });
-      }
-    }
-  }, []);
+    if (!isMobile) return;
+    const targetId = MOBILE_HASH_TARGETS[window.location.hash];
+    if (!targetId) return;
+    document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth" });
+  }, [isMobile]);
 
   return (
     <>
-      {/* 100% Preserved Desktop Website (Hidden on mobile breakpoints, aria-hidden when inactive) */}
-      <div
-        className="hidden md:block"
-        aria-hidden={isMobile === true ? "true" : undefined}
-      >
-        <DesktopLandingPage />
-      </div>
+      {isMobile !== true && (
+        <div className="hidden md:block">
+          <DesktopLandingPage />
+        </div>
+      )}
 
-      {/* Comprehensive 40-Principle Mobile Experience (Exclusively on mobile breakpoints, aria-hidden when inactive) */}
-      <div
-        className="block md:hidden"
-        aria-hidden={isMobile === false ? "true" : undefined}
-      >
-        <MobileLandingPage />
-      </div>
+      {isMobile !== false && (
+        <div className="block md:hidden">
+          <MobileLandingPage />
+        </div>
+      )}
     </>
   );
 }

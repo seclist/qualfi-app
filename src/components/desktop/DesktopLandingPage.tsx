@@ -5,7 +5,8 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Knob } from "@/components/Knob";
 import { RealisticPhone } from "@/components/RealisticPhone";
-import { ThumbZoneBar } from "@/components/ThumbZoneBar";
+import { HowItWorks } from "@/components/HowItWorks";
+import { SectionEyebrow } from "@/components/SectionEyebrow";
 import { WhatsAppPreviewModal } from "@/components/WhatsAppPreviewModal";
 import { GetYourFunnel } from "@/components/GetYourFunnel";
 import { TopographicSectionDivider } from "@/components/TopographicSectionDivider";
@@ -46,7 +47,7 @@ function Header() {
       </a>
 
       {/* Nav Anchors */}
-      <nav className="flex items-center gap-6 sm:gap-8 text-xs font-semibold text-[#121316]/80">
+      <nav aria-label="Primary" className="flex items-center gap-6 sm:gap-8 text-xs font-semibold text-[#121316]/80">
         <a
           href="#demo"
           className="hover:text-[#d9532f] transition-colors"
@@ -96,6 +97,7 @@ function Hero() {
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 1440 900"
         preserveAspectRatio="none"
+        aria-hidden="true"
       >
         <path
           d="M-80 160 C 260 80, 520 270, 860 180 C 1140 110, 1340 220, 1560 150"
@@ -164,6 +166,16 @@ function Hero() {
             Get your funnel →
           </motion.a>
         </div>
+
+        {/* Offer terms at a glance */}
+        <ul className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-xs font-medium text-[#52555f]">
+          {["£0 upfront", "Live in 72 hours", "No monthly fee"].map((term) => (
+            <li key={term} className="flex items-center gap-2">
+              <span aria-hidden="true" className="h-1 w-1 rounded-full bg-[#d9532f]" />
+              {term}
+            </li>
+          ))}
+        </ul>
 
         {/* Realistic iPhone 16 Pro Dual Phone Showcase */}
         <div className="relative mt-14 sm:mt-18 w-full max-w-4xl flex items-center justify-center">
@@ -242,7 +254,7 @@ function Hero() {
               className="relative z-10 w-[305px] sm:w-[330px] -rotate-2 sm:-rotate-5"
             >
               <RealisticPhone
-                urlBar="qualfi.com/coachmaya"
+                urlBar="qualfi.app/coachmaya"
                 screenClassName="h-[640px] sm:h-[680px]"
               >
                 <div className="flex h-full flex-col justify-between py-2">
@@ -422,9 +434,9 @@ function Hero() {
                   {/* Authentic WhatsApp iOS Input Bar */}
                   <div className="relative z-10 flex items-center gap-2 bg-[#1f2c34] px-3 py-2 border-t border-[#202c33]">
                     {/* Plus Icon */}
-                    <button type="button" className="text-[#00a884] text-xl font-bold px-1">
+                    <span aria-hidden="true" className="text-[#00a884] text-xl font-bold px-1">
                       +
-                    </button>
+                    </span>
 
                     {/* Pill Text Field */}
                     <div className="flex-1 flex items-center justify-between rounded-full bg-[#2a3942] px-3.5 py-1.5 text-xs text-[#8696a0]">
@@ -475,10 +487,9 @@ function PebbleOption<T extends string | number>({
         return (
           <motion.li key={String(o.id)}>
             <motion.button
-              onHoverStart={() => {
-                setHover(o.id);
-                playSensoryFeedback("tap");
-              }}
+              onHoverStart={() => setHover(o.id)}
+              onFocus={() => setHover(o.id)}
+              onBlur={() => setHover(null)}
               onClick={() => {
                 playSensoryFeedback("tap");
                 onPick(o.id);
@@ -576,9 +587,7 @@ function Demo() {
       <div className="relative mx-auto grid max-w-7xl items-center gap-16 lg:grid-cols-12">
         {/* Left Narrative */}
         <div className="lg:col-span-5 space-y-6">
-          <span className="text-xs font-bold uppercase tracking-[0.25em] text-[#d9532f]">
-            Interactive Phone Demo
-          </span>
+          <SectionEyebrow index="02">Interactive Phone Demo</SectionEyebrow>
           <h2 className="font-serif text-5xl font-light leading-[0.98] text-[#121316] md:text-6xl">
             Be the follower. <span className="italic text-[#d9532f]">Feel the 60 seconds.</span>
           </h2>
@@ -606,9 +615,14 @@ function Demo() {
 
         {/* Right iPhone 16 Pro Mockup + Draggable WhatsApp Lead Card */}
         <div ref={dragConstraintsRef} className="relative lg:col-span-7 flex justify-center items-center min-h-[720px]">
-          <div className="w-full max-w-[340px]">
+          {/* Stage: a gridded porcelain panel that anchors the phone */}
+          <div
+            aria-hidden="true"
+            className="bg-grid-pattern pointer-events-none absolute inset-x-0 inset-y-8 rounded-[44px] border border-stone-200/70 bg-[#faf7f2] lg:inset-x-8"
+          />
+          <div className="relative z-10 w-full max-w-[340px]">
             <RealisticPhone
-              urlBar="qualfi.com/coachmaya"
+              urlBar="qualfi.app/coachmaya"
               screenClassName="h-[640px] sm:h-[680px]"
             >
               <div className="flex h-full flex-col justify-between py-1">
@@ -857,11 +871,13 @@ function Demo() {
 
                               <div className="space-y-2.5">
                                 <div>
-                                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#121316]/70 mb-1">
+                                  <label htmlFor="demo-name" className="block text-[10px] font-bold uppercase tracking-wider text-[#121316]/70 mb-1">
                                     Your Name
                                   </label>
                                   <input
+                                    id="demo-name"
                                     type="text"
+                                    autoComplete="off"
                                     value={d.answers.name || ""}
                                     onChange={(e) => d.setContact(e.target.value, d.answers.contact || "")}
                                     placeholder="Alex Morgan"
@@ -870,11 +886,13 @@ function Demo() {
                                 </div>
 
                                 <div>
-                                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#121316]/70 mb-1">
+                                  <label htmlFor="demo-contact" className="block text-[10px] font-bold uppercase tracking-wider text-[#121316]/70 mb-1">
                                     WhatsApp or Instagram
                                   </label>
                                   <input
+                                    id="demo-contact"
                                     type="text"
+                                    autoComplete="off"
                                     value={d.answers.contact || ""}
                                     onChange={(e) => d.setContact(d.answers.name || "", e.target.value)}
                                     placeholder="+44 7911 123456 or @alexfit"
@@ -1016,6 +1034,15 @@ function Demo() {
                     setShowChatModal(true);
                   }
                 }}
+                role="button"
+                tabIndex={0}
+                aria-label="Open the full WhatsApp lead alert"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setShowChatModal(true);
+                  }
+                }}
                 className="absolute -bottom-4 right-2 w-[min(90vw,340px)] rounded-3xl border border-stone-200/90 bg-white/95 p-4 shadow-[0_25px_60px_rgba(18,19,22,0.18)] md:-right-8 md:bottom-10 z-30 select-none touch-none hover:shadow-2xl backdrop-blur-md transition-shadow"
                 initial={{ opacity: 0, scale: 0.94, x: -100 }}
                 animate={{ opacity: 1, scale: 1, x: 0 }}
@@ -1143,6 +1170,11 @@ function Footer() {
         </ul>
       </div>
 
+      <div className="mx-auto mt-10 flex max-w-7xl flex-wrap items-center justify-between gap-3 border-t border-stone-200/90 pt-5 text-xs text-[#52555f]">
+        <span>© 2026 qualfi</span>
+        <span className="font-serif italic">Built for coaches, live in 72 hours.</span>
+      </div>
+
       <motion.p
         initial={{ y: "40%", opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
@@ -1171,6 +1203,7 @@ export function DesktopLandingPage() {
           topColor="#faf7f2"
           bottomColor="#ffffff"
         />
+        <HowItWorks index="01" />
         <Demo />
         <TopographicSectionDivider
           variant="demo-to-funnel"
@@ -1185,7 +1218,6 @@ export function DesktopLandingPage() {
         />
       </main>
       <Footer />
-      <ThumbZoneBar />
     </div>
   );
 }

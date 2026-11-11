@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EASING, playSensoryFeedback } from "@/lib/design-system";
 
@@ -32,11 +33,24 @@ export function WhatsAppPreviewModal({
   onClose,
   data,
 }: WhatsAppPreviewModalProps) {
-  if (!isOpen) return null;
+  // Close on Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, onClose]);
 
   return (
     <AnimatePresence>
+      {isOpen && (
       <motion.div
+        key="whatsapp-preview"
+        role="dialog"
+        aria-modal="true"
+        aria-label="WhatsApp lead alert preview"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -61,6 +75,8 @@ export function WhatsAppPreviewModal({
               </span>
             </div>
             <button
+              type="button"
+              autoFocus
               onClick={() => {
                 playSensoryFeedback("tap");
                 onClose();
@@ -142,7 +158,7 @@ export function WhatsAppPreviewModal({
                       : "bg-[#ffd279]/20 text-[#ffd279]"
                   }`}
                 >
-                  {data.score}/100 Hot Lead
+                  {data.score}/100 {data.hot ? "Hot Lead" : "Warm Lead"}
                 </span>
               </div>
 
@@ -155,6 +171,7 @@ export function WhatsAppPreviewModal({
           </div>
         </motion.div>
       </motion.div>
+      )}
     </AnimatePresence>
   );
 }

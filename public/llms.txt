@@ -6,7 +6,7 @@
 - **60-Second Interactive Value Exchange**: Calculates calibrated Mifflin-St Jeor daily caloric targets (TDEE/BMR), macronutrient breakdowns (protein, carbs, fats in grams), and optimal training splits (Push·Pull·Legs, Upper/Lower, Full Body) in real time.
 - **0–100 Algorithmic Lead Pre-Qualification**: Automatically scores every prospect on purchase intent based on coaching goal, training availability, primary obstacle, and commitment timeline.
 - **Instant <2s WhatsApp Lead Routing**: Dispatches high-intent verified leads directly to the coach's WhatsApp or phone within 2 seconds while buyer motivation is at its peak.
-- **72-Hour Custom Build & Turnaround**: Designed, branded, and deployed as a standalone social bio link (`qualfi.com/@handle`) or website embed within 72 hours.
+- **72-Hour Custom Build & Turnaround**: Designed, branded, and deployed as a standalone social bio link (`qualfi.app/@handle`) or website embed within 72 hours.
 
 ## Pricing
 - **Founding Partner Offer (First 25 Coaches)**: £99 one-time setup fee (normally £299).
@@ -22,5 +22,5 @@
 - [Instagram (@qualfiapp)](https://www.instagram.com/qualfiapp/)
 
 ## Contact
-- Email: hello@qualfi.com
+- Email: scalixvip@gmail.com
 - Instagram: https://www.instagram.com/qualfiapp/

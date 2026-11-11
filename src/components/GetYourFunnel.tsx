@@ -8,6 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
 import { EASING, playSensoryFeedback, triggerMobileHaptic } from "@/lib/design-system";
+import { SectionEyebrow } from "@/components/SectionEyebrow";
 
 /**
  * ============================================================================
@@ -337,9 +338,7 @@ export function GetYourFunnel({
           transition={{ duration: 0.5, ease: EASING.naturalOut }}
           className="text-left sm:text-center"
         >
-          <span className="inline-block text-xs font-bold uppercase tracking-[0.22em] text-[#d9532f]">
-            Founding Partner Cohort · 72h Turnaround
-          </span>
+          <SectionEyebrow index="03">Founding Partner Cohort</SectionEyebrow>
 
           <h2 className="mt-3 font-serif text-4xl font-light tracking-tight text-[#121316] sm:text-5xl leading-[1.04]">
             Get your custom <span className="italic font-normal text-[#d9532f]">bio funnel.</span>
@@ -473,7 +472,7 @@ export function GetYourFunnel({
                 >
                   <div className="h-12 w-12 rounded-full border-3 border-[#d9532f] border-t-transparent animate-spin" />
                   <p className="font-serif text-xl italic text-[#121316]">
-                    Setting up qualfi.com/@{cleanHandle}…
+                    Setting up qualfi.app/@{cleanHandle}…
                   </p>
                   <p className="text-xs text-[#52555f]">
                     Preparing your 72-hour custom preview
@@ -512,10 +511,9 @@ export function GetYourFunnel({
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.22, delay: idx * 0.04, ease: EASING.naturalOut }}
-                            onHoverStart={() => {
-                              setHoveredId(item.id);
-                              playSensoryFeedback("tap");
-                            }}
+                            onHoverStart={() => setHoveredId(item.id)}
+                            onFocus={() => setHoveredId(item.id)}
+                            onBlur={() => setHoveredId(null)}
                             onHoverEnd={() => setHoveredId(null)}
                             whileHover={{ scale: 1.015, y: -1 }}
                             whileTap={{ scale: 0.97 }}
@@ -575,10 +573,9 @@ export function GetYourFunnel({
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.22, delay: idx * 0.04, ease: EASING.naturalOut }}
-                              onHoverStart={() => {
-                                setHoveredId(goal.id);
-                                playSensoryFeedback("tap");
-                              }}
+                              onHoverStart={() => setHoveredId(goal.id)}
+                              onFocus={() => setHoveredId(goal.id)}
+                              onBlur={() => setHoveredId(null)}
                               onHoverEnd={() => setHoveredId(null)}
                               whileHover={{ scale: 1.015, y: -1 }}
                               whileTap={{ scale: 0.97 }}
@@ -654,10 +651,9 @@ export function GetYourFunnel({
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.22, delay: idx * 0.04, ease: EASING.naturalOut }}
-                              onHoverStart={() => {
-                                setHoveredId(b.id);
-                                playSensoryFeedback("tap");
-                              }}
+                              onHoverStart={() => setHoveredId(b.id)}
+                              onFocus={() => setHoveredId(b.id)}
+                              onBlur={() => setHoveredId(null)}
                               onHoverEnd={() => setHoveredId(null)}
                               whileHover={{ scale: 1.015, y: -1 }}
                               whileTap={{ scale: 0.97 }}
@@ -755,7 +751,7 @@ export function GetYourFunnel({
                             Instagram Handle
                           </label>
                           <span className="font-mono text-[11px] font-semibold text-[#d9532f]">
-                            qualfi.com/@{cleanHandle}
+                            qualfi.app/@{cleanHandle}
                           </span>
                         </div>
 
@@ -835,7 +831,7 @@ export function GetYourFunnel({
                               exit={{ opacity: 0, y: -4 }}
                               className="mt-1 text-xs font-semibold text-[#047857]"
                             >
-                              ✓ qualfi.com/@{cleanHandle} is available
+                              ✓ qualfi.app/@{cleanHandle} is available
                             </motion.p>
                           ) : null}
                         </AnimatePresence>
@@ -994,16 +990,30 @@ export function GetYourFunnel({
                         </p>
                       </motion.div>
 
-                      {/* Honeypot Anti-Bot Field (Hidden from real users) */}
-                      <div className="sr-only" aria-hidden="true">
-                        <label htmlFor={`${idPrefix}-enquire-website`}>
-                          Website
+                      {/* Honeypot Anti-Bot Field (Stealthily hidden from users, autofill-safe, a11y-clean) */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          left: "-9999px",
+                          top: "-9999px",
+                          width: "1px",
+                          height: "1px",
+                          overflow: "hidden",
+                          opacity: 0,
+                          pointerEvents: "none",
+                        }}
+                        aria-hidden="true"
+                        role="presentation"
+                      >
+                        <label htmlFor={`${idPrefix}-verification-field`}>
+                          Do not fill this field
                         </label>
                         <input
-                          id={`${idPrefix}-enquire-website`}
+                          id={`${idPrefix}-verification-field`}
                           type="text"
                           tabIndex={-1}
-                          autoComplete="off"
+                          autoComplete="new-password"
+                          aria-hidden="true"
                           {...register("website")}
                         />
                       </div>

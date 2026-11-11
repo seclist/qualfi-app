@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
+import { MotionProvider } from "@/components/MotionProvider";
 import { SiteQolEnhancements } from "@/components/SiteQolEnhancements";
 import "./globals.css";
 
@@ -116,7 +117,7 @@ const jsonLdSchema = {
       ],
       contactPoint: {
         "@type": "ContactPoint",
-        email: "hello@qualfi.com",
+        email: "scalixvip@gmail.com",
         contactType: "customer support",
         availableLanguage: ["English"],
       },
@@ -224,7 +225,7 @@ const jsonLdSchema = {
           "@type": "HowToStep",
           position: 1,
           name: "Follower Taps Your Bio Link",
-          text: "Instead of a dead Linktree list, your prospect opens your branded 60-second diagnostic micro-tool (qualfi.com/@yourhandle).",
+          text: "Instead of a dead Linktree list, your prospect opens your branded 60-second diagnostic micro-tool (qualfi.app/@yourhandle).",
         },
         {
           "@type": "HowToStep",
@@ -255,7 +256,7 @@ const jsonLdSchema = {
           name: "Why do fitness coaches replace Linktree with a qualfi diagnostic micro-tool?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Static Linktrees and 'DM me READY' posts force followers to read walls of text or fill out cold forms, causing over 80% drop-off. A qualfi micro-tool calculates custom daily calories, protein/carb/fat macros, and an optimal training split in 60 seconds in exchange for the prospect's WhatsApp number.",
+            text: "Static Linktrees and 'DM me READY' posts force followers to read walls of text or fill out cold forms. Even a dedicated landing page converts only 6.6% of its visitors at the median (Unbounce Conversion Benchmark Report 2024, 41,000+ landing pages), and a list of links or a cold form gives followers even less reason to act. A qualfi micro-tool calculates custom daily calories, protein/carb/fat macros, and an optimal training split in 60 seconds in exchange for the prospect's WhatsApp number.",
           },
         },
         {
@@ -287,7 +288,7 @@ const jsonLdSchema = {
           name: "Can a qualfi diagnostic micro-tool work in Instagram bios, TikTok bios, and existing coaching websites?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Yes. Every qualfi build operates both as an ultra-fast standalone bio link (qualfi.com/@handle) for Instagram, TikTok, and YouTube, and as a frictionless embed inside your existing coaching website or client portal.",
+            text: "Yes. Every qualfi build operates both as an ultra-fast standalone bio link (qualfi.app/@handle) for Instagram, TikTok, and YouTube, and as a frictionless embed inside your existing coaching website or client portal.",
           },
         },
         {
@@ -303,19 +304,23 @@ const jsonLdSchema = {
   ],
 };
 
+function safeJsonLdStringify(obj: unknown): string {
+  return JSON.stringify(obj).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
+}
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en-GB">
+    <html lang="en-GB" data-scroll-behavior="smooth">
       <body
         className={`${fraunces.variable} ${jakarta.variable} antialiased selection:bg-[#d9532f] selection:text-white`}
       >
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSchema) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLdSchema) }}
         />
         <SiteQolEnhancements />
         {/* WCAG 2.4.1 Bypass Blocks: Skip to Main Content */}
@@ -325,7 +330,7 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        {children}
+        <MotionProvider>{children}</MotionProvider>
       </body>
     </html>
   );

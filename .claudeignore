@@ -1,0 +1,13 @@
+.env*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*credentials*.json
+*service-account*.json
+.next/
+node_modules/
+dist/
+build/
+.claude/*.local.json

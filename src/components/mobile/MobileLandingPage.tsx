@@ -21,6 +21,8 @@ import { downloadCustomBlueprintPdf } from "@/lib/generatePdf";
 import { GetYourFunnel } from "@/components/GetYourFunnel";
 import { TopographicSectionDivider } from "@/components/TopographicSectionDivider";
 import { Knob } from "@/components/Knob";
+import { HowItWorks } from "@/components/HowItWorks";
+import { SectionEyebrow } from "@/components/SectionEyebrow";
 
 /**
  * ============================================================================
@@ -270,6 +272,21 @@ export function MobileLandingPage() {
     };
   }, []);
 
+  // While the menu sheet is open: lock page scroll behind it and close on Escape
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isMenuOpen]);
+
   // Pure Light Mode (Wabi-Sabi Porcelain Ceramic Aesthetics)
   const theme = {
     bg: "bg-[#faf7f2]",
@@ -366,6 +383,12 @@ export function MobileLandingPage() {
     setIsCalculating(true); // Principle 7 Animation (Subdued Loading)
     triggerMobileHaptic("light");
     playSensoryFeedback("tap");
+
+    try {
+      localStorage.removeItem("qualfi_mobile_progress");
+    } catch {
+      // Ignore
+    }
 
     setTimeout(() => {
       setIsCalculating(false);
@@ -466,6 +489,7 @@ export function MobileLandingPage() {
               setIsMenuOpen((prev) => !prev);
             }}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMenuOpen}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-200/90 bg-white shadow-xs active:scale-95 transition-transform text-[#121316]"
           >
             <div className="relative w-4 h-4 flex items-center justify-center">
@@ -539,6 +563,9 @@ export function MobileLandingPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation"
               className="relative z-10 w-full rounded-t-[32px] border-t border-stone-200 bg-white p-6 pb-24 shadow-2xl"
             >
               {/* Grab Handle Pill */}
@@ -625,7 +652,7 @@ export function MobileLandingPage() {
         )}
       </AnimatePresence>
 
-      <div id="mobile-main-content" role="region" aria-label="Mobile experience">
+      <main id="main-content">
         {/* ==================================================================== */}
         {/* MOBILE HERO SECTION (PRINCIPLES 1, 3, 4, 16)                          */}
         {/* ==================================================================== */}
@@ -640,12 +667,12 @@ export function MobileLandingPage() {
           </div>
 
           {/* Headline (Principle 16: Obvious Hierarchy) */}
-          <h2 className="mt-4 font-sans font-black text-3xl tracking-tight leading-[1.12]">
+          <h1 className="mt-4 font-sans font-black text-3xl tracking-tight leading-[1.12]">
             Make your bio do the{" "}
             <span className="font-serif italic font-normal text-[#d9532f]">
               heavy lifting.
             </span>
-          </h2>
+          </h1>
 
           {/* Subtitle (Principle 3: Legible Typography >= 16px) */}
           <p className={`mt-3 text-base leading-relaxed ${theme.textSecondary}`}>
@@ -683,6 +710,16 @@ export function MobileLandingPage() {
             </motion.a>
           </div>
 
+          {/* Offer terms at a glance */}
+          <ul className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-medium text-[#52555f]">
+            {["£0 upfront", "Live in 72 hours", "No monthly fee"].map((term) => (
+              <li key={term} className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="h-1 w-1 rounded-full bg-[#d9532f]" />
+                {term}
+              </li>
+            ))}
+          </ul>
+
           {/* Quick Value Metrics Row */}
           <div className="mt-8 grid grid-cols-3 gap-2">
             {[
@@ -716,10 +753,8 @@ export function MobileLandingPage() {
         {/* ==================================================================== */}
         <section id="mobile-demo" className="bg-white px-4 py-8 scroll-mt-14">
           <div className="mb-4 text-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#d9532f]">
-              Interactive Bio Diagnostic
-            </span>
-            <h2 className="mt-1 font-serif text-2xl font-light">
+            <SectionEyebrow index="01">Interactive Bio Diagnostic</SectionEyebrow>
+            <h2 className="mt-2 font-serif text-2xl font-light">
               Experience the 60-second value exchange
             </h2>
             <p className={`mt-1 text-sm ${theme.textSecondary}`}>
@@ -1154,12 +1189,15 @@ export function MobileLandingPage() {
                       <div className="space-y-3.5">
                         {/* Name input with autocomplete and inline error */}
                         <div>
-                          <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${theme.textSecondary}`}>
+                          <label htmlFor="m-demo-name" className={`block text-xs font-bold uppercase tracking-wider mb-1 ${theme.textSecondary}`}>
                             Your Name *
                           </label>
                           <input
+                            id="m-demo-name"
                             type="text"
                             required
+                            aria-invalid={Boolean(formErrors.name)}
+                            aria-describedby={formErrors.name ? "m-demo-name-error" : undefined}
                             autoComplete="name"
                             enterKeyHint="next"
                             value={answers.name}
@@ -1174,9 +1212,11 @@ export function MobileLandingPage() {
                           />
                           {formErrors.name && (
                             <motion.span
+                              id="m-demo-name-error"
+                              role="alert"
                               initial={{ opacity: 0, y: -4 }}
                               animate={{ opacity: 1, y: 0 }}
-                              className="mt-1 block text-xs font-semibold text-rose-500"
+                              className="mt-1 block text-xs font-semibold text-rose-600"
                             >
                               {formErrors.name}
                             </motion.span>
@@ -1185,12 +1225,15 @@ export function MobileLandingPage() {
 
                         {/* WhatsApp / Phone / IG input with inputMode="tel" */}
                         <div>
-                          <label className={`block text-xs font-bold uppercase tracking-wider mb-1 ${theme.textSecondary}`}>
+                          <label htmlFor="m-demo-contact" className={`block text-xs font-bold uppercase tracking-wider mb-1 ${theme.textSecondary}`}>
                             WhatsApp or Mobile *
                           </label>
                           <input
+                            id="m-demo-contact"
                             type="tel"
                             required
+                            aria-invalid={Boolean(formErrors.contact)}
+                            aria-describedby={formErrors.contact ? "m-demo-contact-error" : undefined}
                             autoComplete="tel"
                             inputMode="tel"
                             enterKeyHint="done"
@@ -1206,9 +1249,11 @@ export function MobileLandingPage() {
                           />
                           {formErrors.contact && (
                             <motion.span
+                              id="m-demo-contact-error"
+                              role="alert"
                               initial={{ opacity: 0, y: -4 }}
                               animate={{ opacity: 1, y: 0 }}
-                              className="mt-1 block text-xs font-semibold text-rose-500"
+                              className="mt-1 block text-xs font-semibold text-rose-600"
                             >
                               {formErrors.contact}
                             </motion.span>
@@ -1322,7 +1367,7 @@ export function MobileLandingPage() {
                             <div><span className="text-stone-400">Phone:</span> <span className="text-[#53bdeb] font-mono">{result.contact}</span></div>
                             <div><span className="text-stone-400">Blueprint:</span> {result.calories} kcal ({result.protein}P / {result.carbs}C / {result.fat}F)</div>
                             <div className="text-[#25d366] font-bold pt-1">
-                              Intent Score: {result.score}/100 (Hot Buyer)
+                              Intent Score: {result.score}/100 ({result.hot ? "Hot Buyer" : "Warm Lead"})
                             </div>
                           </div>
                         </motion.div>
@@ -1333,6 +1378,11 @@ export function MobileLandingPage() {
                         onClick={() => {
                           playSensoryFeedback("tap");
                           triggerMobileHaptic("light");
+                          try {
+                            localStorage.removeItem("qualfi_mobile_progress");
+                          } catch {
+                            // Ignore
+                          }
                           setStep(0);
                         }}
                         className={`block mx-auto mt-3 text-xs underline underline-offset-4 ${theme.textSecondary} active:text-[#d9532f]`}
@@ -1361,6 +1411,9 @@ export function MobileLandingPage() {
           </div>
         </section>
 
+        {/* The funnel arc as a vertical timeline */}
+        <HowItWorks index="02" />
+
         {/* ==================================================================== */}
         {/* PRINCIPLE 19 VISUAL: PROGRESSIVE DISCLOSURE ACCORDIONS               */}
         {/* ==================================================================== */}
@@ -1373,9 +1426,9 @@ export function MobileLandingPage() {
             {[
               {
                 id: "heuristic",
-                title: "Why Bio Links Leak Revenue: Heuristic Formula",
+                title: "Why Bio Links Leak Revenue",
                 content:
-                  "Conversion = 4(M) + 3(V) + 2(I - F) - 2(A). Motivation carries a 4x multiplier. Delivering instant custom macros in 60s eliminates buyer anxiety and friction, driving up bio conversions by 77 points.",
+                  "The MECLABS Conversion Sequence Heuristic, C = 4m + 3v + 2(i - f) - 2a, weighs a visitor's motivation and your value proposition against friction and anxiety. A list of links adds friction and offers nothing back. Handing over custom macros in 60 seconds raises the value and incentive while cutting both. For scale, the median landing page converts 6.6% of visitors (Unbounce Conversion Benchmark Report 2024).",
               },
               {
                 id: "formula",
@@ -1409,6 +1462,7 @@ export function MobileLandingPage() {
                       triggerMobileHaptic("light");
                       setOpenAccordion(isOpen ? null : acc.id);
                     }}
+                    aria-expanded={isOpen}
                     className={`flex min-h-[48px] w-full items-center justify-between p-4 text-left font-serif text-sm font-medium ${theme.textPrimary}`}
                   >
                     <span>{acc.title}</span>
@@ -1486,7 +1540,7 @@ export function MobileLandingPage() {
             qualfi
           </div>
         </footer>
-      </div>
+      </main>
 
       {/* ====================================================================== */}
       {/* PRINCIPLES 1, 10, 16 VISUAL: REWORKED ULTRA-SMOOTH MOBILE BOTTOM NAV   */}

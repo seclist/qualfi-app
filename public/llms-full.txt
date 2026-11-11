@@ -1,12 +1,12 @@
 # qualfi — Complete System & Product Reference
 
 ## 1. Mission & Problem Statement
-Traditional fitness coaching websites, Linktrees, Stan Stores, and static "Apply Here" Google Forms fail because they force prospects to read walls of text and fill out cold forms, only to wait hours or days for a reply. Over 80% of warm social media profile visitors bounce without inquiring.
+Traditional fitness coaching websites, Linktrees, Stan Stores, and static "Apply Here" Google Forms fail because they force prospects to read walls of text and fill out cold forms, only to wait hours or days for a reply. Even a dedicated landing page converts only 6.6% of its visitors at the median (Unbounce Conversion Benchmark Report 2024, 41,000+ landing pages), and a list of links or a cold form gives followers even less reason to act.
 
 qualfi replaces passive bio links and "DM me READY" posts with a bespoke 60-second interactive diagnostic micro-tool calibrated to each coach's methodology and aesthetic.
 
 ## 2. How the 60-Second Fitness Diagnostic Works
-1. **Curiosity Hook**: A prospect taps the coach's Instagram or TikTok bio link (`qualfi.com/@coach`).
+1. **Curiosity Hook**: A prospect taps the coach's Instagram or TikTok bio link (`qualfi.app/@coach`).
 2. **Interactive Diagnostic (60 Seconds)**:
    - Primary Goal: Fat Loss, Lean Muscle & Strength, or Body Recomposition
    - Biometrics: Current Bodyweight (kg) & Age
@@ -32,5 +32,5 @@ qualfi replaces passive bio links and "DM me READY" posts with a bespoke 60-seco
 ## 5. Turnaround & Contact
 - Delivery Time: Custom designed, branded, and live in 72 hours.
 - Website: https://www.qualfi.app
-- Email: hello@qualfi.com
+- Email: scalixvip@gmail.com
 - Instagram: https://www.instagram.com/qualfiapp/

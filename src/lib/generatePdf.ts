@@ -8,6 +8,14 @@ import type { Result } from "./diagnostic";
  * Precision Swiss-Wabi-Sabi Layout · Vector Rendering · Print-Ready Safe Area
  * ============================================================================
  */
+function sanitizePdfText(input: unknown, maxLen = 40): string {
+  if (typeof input !== "string") return "";
+  return input
+    .replace(/[\x00-\x1F\x7F]/g, "") // Remove ASCII control characters
+    .trim()
+    .slice(0, maxLen);
+}
+
 export function downloadCustomBlueprintPdf(
   result: Result,
   answers: {
@@ -51,8 +59,9 @@ export function downloadCustomBlueprintPdf(
     sage: [85, 125, 98],
   };
 
-  const clientName = result.name?.trim() || "Alex Morgan";
-  const clientFirst = clientName.split(" ")[0];
+  const rawClientName = sanitizePdfText(result.name, 40) || "Alex Morgan";
+  const clientName = rawClientName.length > 24 ? `${rawClientName.slice(0, 22)}…` : rawClientName;
+  const clientFirst = sanitizePdfText(clientName.split(" ")[0], 18) || "Client";
   const weight = answers.weight || 70;
   const age = answers.age || 28;
   const days = answers.days || 4;
@@ -62,7 +71,6 @@ export function downloadCustomBlueprintPdf(
   const carbs = result.carbs || 323;
   const fat = result.fat || 63;
   const split = result.split || "Upper / Lower Split";
-  const score = result.score || 94;
 
   const proteinKcal = protein * 4;
   const carbsKcal = carbs * 4;
@@ -73,18 +81,19 @@ export function downloadCustomBlueprintPdf(
   const fatPct = Math.max(0, 100 - proteinPct - carbsPct);
 
   // Principle 5: Descriptive Metadata (ISO 32000 PDF Standards)
+  const safeTitle = sanitizePdfText(`Coach Maya — Nutrition Blueprint for ${rawClientName}`, 80);
   doc.setProperties({
-    title: `Coach Maya — Personalized Nutrition & Training Blueprint for ${clientName}`,
+    title: safeTitle,
     subject: "Personalized Daily Caloric Targets, Macronutrients, and Training Schedule",
     author: "Coach Maya & qualfi Diagnostic Engine",
     keywords: "Fitness, Nutrition, Macronutrients, Training Split, TDEE, qualfi, Coach Maya",
-    creator: "qualfi (https://qualfi.com)",
+    creator: "qualfi (https://qualfi.app)",
   });
 
   // Principle 10: Actionable Outlines / Bookmarks (PDF Table of Contents)
   try {
     if (doc.outline && typeof doc.outline.add === "function") {
-      const top = doc.outline.add(null, `Client Protocol — ${clientName}`, { pageNumber: 1 });
+      const top = doc.outline.add(null, `Client Protocol — ${sanitizePdfText(rawClientName, 30)}`, { pageNumber: 1 });
       doc.outline.add(top, "1. Daily Fuel & Macronutrient Breakdown", { pageNumber: 1 });
       doc.outline.add(top, "2. Weekly Training Schedule Architecture", { pageNumber: 1 });
       doc.outline.add(top, "3. Diagnostic Obstacle Coaching Analysis", { pageNumber: 1 });
@@ -581,10 +590,10 @@ export function downloadCustomBlueprintPdf(
   doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
   doc.text("ISO 32000 PDF Compliant  ·  Confidential Client Report  ·  Generated via qualfi Diagnostic Engine", margin, pageHeight - 12);
 
-  doc.textWithLink("qualfi.com", pageWidth - margin - 15, pageHeight - 12, { url: "https://qualfi.com" });
+  doc.textWithLink("qualfi.app", pageWidth - margin - 15, pageHeight - 12, { url: "https://qualfi.app" });
 
-  // Principle 19: Descriptive Filenames
-  const safeClientName = clientName.replace(/[^a-zA-Z0-9]/g, "_");
+  // Principle 19: Descriptive Filenames (Capped to prevent OS path overflows)
+  const safeClientName = rawClientName.replace(/[^a-zA-Z0-9]/g, "_").slice(0, 32) || "Client";
   const filename = `qualfi_Nutrition_Blueprint_${safeClientName}_v1.0.pdf`;
 
   // Trigger Save / Download
